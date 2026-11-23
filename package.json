@@ -1,12 +1,6 @@
 {
   "name": "scanly",
   "private": true,
-  "workspaces": [
-    "frontend"
-  ],
-  "scripts": {
-    "build": "npm run build --workspace=frontend"
-  },
   "dependencies": {
     "@vercel/blob": "^2.9.0"
   }

@@ -10,9 +10,12 @@ from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/avatar", tags=["Avatar & Storage"])
 
-# Local directory fallback for avatars when Vercel Blob token is not configured
-AVATAR_DIR = "/tmp/avatars" if os.getenv("VERCEL") else os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "avatars")
-os.makedirs(AVATAR_DIR, exist_ok=True)
+# Writable temporary directory for local avatar storage fallback
+AVATAR_DIR = "/tmp/avatars"
+try:
+    os.makedirs(AVATAR_DIR, exist_ok=True)
+except Exception:
+    pass
 
 @router.post("/upload")
 async def upload_avatar(

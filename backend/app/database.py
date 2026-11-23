@@ -30,7 +30,8 @@ if raw_url:
         print(f"[Scanly DB Warning]: PostgreSQL setup failed ({e}). Falling back to SQLite.")
 
 if not engine:
-    if os.getenv("VERCEL"):
+    # On serverless (Vercel/Lambda) or read-only filesystem, always use /tmp
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME") or not os.access(".", os.W_OK):
         DATABASE_URL = "sqlite:////tmp/smart_luggage.db"
     else:
         DATABASE_URL = "sqlite:///./smart_luggage.db"

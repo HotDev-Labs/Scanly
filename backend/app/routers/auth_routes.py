@@ -23,9 +23,24 @@ def signup(req: UserRegister, db: Session = Depends(get_db)):
         )
     
     # Check if user with this email or username already exists
-    existing = db.query(User).filter(
-        (User.username == clean_email) | (User.email == clean_email)
-    ).first()
+    try:
+        existing = db.query(User).filter(
+            (User.username == clean_email) | (User.email == clean_email)
+        ).first()
+    except Exception as e:
+        # Auto-heal: Ensure DB tables exist if called in cold serverless container
+        from ..main import init_db
+        try:
+            init_db()
+            existing = db.query(User).filter(
+                (User.username == clean_email) | (User.email == clean_email)
+            ).first()
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Database initialization failed: {str(e)}"
+            )
+
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

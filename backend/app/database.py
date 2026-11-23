@@ -3,7 +3,13 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Support Vercel Postgres / Neon Storage or generic DATABASE_URL
-raw_url = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL")
+raw_url = (
+    os.getenv("POSTGRES_URL") 
+    or os.getenv("DATABASE_URL") 
+    or os.getenv("POSTGRES_PRISMA_URL") 
+    or os.getenv("POSTGRES_URL_NON_POOLING")
+)
+
 if raw_url:
     # SQLAlchemy requires postgresql:// instead of postgres://
     if raw_url.startswith("postgres://"):
@@ -15,11 +21,15 @@ elif os.getenv("VERCEL"):
 else:
     DATABASE_URL = "sqlite:///./smart_luggage.db"
 
-connect_args = {}
+engine_kwargs = {}
 if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    # PostgreSQL settings for Vercel Serverless
+    engine_kwargs["pool_pre_ping"] = True
+    engine_kwargs["pool_recycle"] = 300
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 # Enable Foreign Key enforcement in SQLite
 if DATABASE_URL.startswith("sqlite"):

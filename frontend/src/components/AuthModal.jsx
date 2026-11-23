@@ -9,7 +9,6 @@ import {
   AlertCircle, 
   CheckCircle2, 
   X,
-  Sparkles,
   ShieldCheck
 } from 'lucide-react';
 
@@ -60,13 +59,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setMode('login');
-    setError('');
   };
 
   return (
@@ -191,32 +183,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
               </>
             )}
           </button>
-
-          {/* Quick Demo Credentials */}
-          <div className="pt-3 border-t border-slate-100">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-              <span>Quick Test Agent Accounts</span>
-              <Sparkles className="w-3 h-3 text-amber-500" />
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <button
-                type="button"
-                onClick={() => handleQuickFill('agent1@scanly.com', 'pass123')}
-                className="p-2 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-slate-800">Agent 1</div>
-                <div className="text-[10px] text-slate-500 font-mono">agent1@scanly.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('agent2@scanly.com', 'pass123')}
-                className="p-2 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-lg text-left transition-colors cursor-pointer"
-              >
-                <div className="font-bold text-slate-800">Agent 2</div>
-                <div className="text-[10px] text-slate-500 font-mono">agent2@scanly.com</div>
-              </button>
-            </div>
-          </div>
         </form>
       </div>
     </div>

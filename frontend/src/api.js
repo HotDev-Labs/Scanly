@@ -38,6 +38,10 @@ export const api = {
     body: JSON.stringify({ email, password, full_name: fullName })
   }),
   getMe: () => apiRequest('/auth/me'),
+  updateProfile: (fullName) => apiRequest('/auth/profile', {
+    method: 'PUT',
+    body: JSON.stringify({ full_name: fullName })
+  }),
 
   // Passengers
   getPassengers: (search = '', destination = '', batch = '') => {

@@ -57,10 +57,10 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
     <>
       {/* Top Header Bar in Solid Blue Theme (No Neon Effect) */}
       <header className="no-print bg-blue-800 border-b border-blue-900 text-white sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative">
           
           {/* Left: Brand Logo & Title */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 z-10">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -81,8 +81,8 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
             </div>
           </div>
 
-          {/* Center / Right: Full Navigation Menu in Header for Web View */}
-          <nav className="hidden md:flex items-center space-x-1">
+          {/* Center: The Four Navigation Options Perfectly Centered */}
+          <nav className="hidden md:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -104,25 +104,25 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
             })}
           </nav>
 
-          {/* Desktop Right: Agent Account Status & Switcher */}
-          <div className="hidden md:flex items-center space-x-2 pl-3 border-l border-blue-700/60">
+          {/* Desktop Right: Agent Full Name & Logout Button in White */}
+          <div className="hidden md:flex items-center space-x-2.5 z-10">
             {currentUser ? (
               <div className="flex items-center space-x-2">
                 <div 
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-900/70 rounded-xl text-xs font-semibold text-blue-100 border border-blue-700/50 shadow-2xs"
-                  title={`Logged in as ${currentUser.email || currentUser.username}`}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-900/70 rounded-xl text-xs font-semibold text-white border border-blue-700/50 shadow-2xs"
+                  title={`Logged in as ${currentUser.full_name || currentUser.username} (${currentUser.email || ''})`}
                 >
                   <User className="w-3.5 h-3.5 text-blue-300 flex-shrink-0" />
-                  <span className="max-w-[150px] truncate font-medium">
-                    {currentUser.email || currentUser.username}
+                  <span className="font-semibold text-white whitespace-nowrap">
+                    {currentUser.full_name || currentUser.username || currentUser.email}
                   </span>
                 </div>
                 <button
                   onClick={onLogout}
-                  className="px-2.5 py-1.5 text-xs font-bold text-rose-200 hover:text-white bg-rose-900/40 hover:bg-rose-800/80 rounded-xl transition-colors cursor-pointer flex items-center space-x-1 border border-rose-800/50"
+                  className="px-3.5 py-1.5 text-xs font-bold text-blue-900 bg-white hover:bg-blue-50 active:scale-95 rounded-xl transition-all cursor-pointer flex items-center space-x-1.5 shadow-xs border border-white"
                   title="Sign out of this agent account"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3.5 h-3.5 text-blue-900" />
                   <span>Logout</span>
                 </button>
               </div>
@@ -138,7 +138,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
           </div>
 
           {/* Mobile Right Quick Indicator */}
-          <div className="flex md:hidden items-center">
+          <div className="flex md:hidden items-center z-10">
             <button
               onClick={() => setActiveTab(activeTab === 'scan-verify' ? 'generate-qr' : 'scan-verify')}
               className="flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-800 shadow-xs cursor-pointer"
@@ -229,7 +229,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                 <div className="space-y-1.5">
                   <div className="flex items-center space-x-2 text-xs text-slate-700 font-semibold px-1">
                     <User className="w-4 h-4 text-blue-800 flex-shrink-0" />
-                    <span className="truncate">{currentUser.email || currentUser.username}</span>
+                    <span className="truncate">{currentUser.full_name || currentUser.username || currentUser.email}</span>
                   </div>
                   <button
                     onClick={() => { setMobileMenuOpen(false); onLogout(); }}

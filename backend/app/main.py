@@ -91,20 +91,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pure ASGI middleware for robust path prefixing
-class ApiPrefixMiddleware:
-    def __init__(self, asgi_app):
-        self.asgi_app = asgi_app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
-            path = scope.get("path", "")
-            if not path.startswith("/api") and not path.startswith("/docs") and not path.startswith("/openapi"):
-                scope["path"] = f"/api{path}"
-        await self.asgi_app(scope, receive, send)
-
-app.add_middleware(ApiPrefixMiddleware)
-
 # Include Routers
 app.include_router(auth_routes.router)
 app.include_router(passenger_routes.router)

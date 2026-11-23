@@ -2,7 +2,12 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./smart_luggage.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    if os.getenv("VERCEL"):
+        DATABASE_URL = "sqlite:////tmp/smart_luggage.db"
+    else:
+        DATABASE_URL = "sqlite:///./smart_luggage.db"
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):

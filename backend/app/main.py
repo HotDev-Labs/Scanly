@@ -51,16 +51,6 @@ def init_db():
         db = SessionLocal()
         try:
             seed_default_users(db)
-            
-            # If database has no passengers, seed all 40 passengers without generating QR codes
-            existing_count = db.query(Passenger).count()
-            if existing_count == 0 and os.path.exists(SAMPLE_CSV_PATH):
-                with open(SAMPLE_CSV_PATH, "r", encoding="utf-8") as f:
-                    content = f.read()
-                preview = parse_and_validate_csv_content(content, db)
-                valid_rows = [row for row in preview.rows if row.is_valid]
-                execute_import_passengers(db, valid_rows)
-                print(f"Auto-seeded {len(valid_rows)} passengers.")
         finally:
             db.close()
             
@@ -86,10 +76,25 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
+# Global exception handler so errors are returned as JSON instead of opaque 500 HTML
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    tb = traceback.format_exc()
+    print(f"[Scanly Error on {request.method} {request.url.path}]: {tb}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": f"{type(exc).__name__}: {str(exc)}",
+            "type": type(exc).__name__,
+            "path": request.url.path
+        }
+    )
+
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -107,6 +112,34 @@ app.include_router(avatar_routes.router)
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+@app.get("/api/db-status")
+def db_status():
+    from sqlalchemy import inspect
+    from .database import DATABASE_URL, engine
+    tables = []
+    user_count = 0
+    db_connected = False
+    error_msg = None
+    try:
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        db_connected = True
+        db = SessionLocal()
+        user_count = db.query(User).count()
+        db.close()
+    except Exception as e:
+        error_msg = str(e)
+
+    return {
+        "status": "connected" if db_connected else "error",
+        "error": error_msg,
+        "database_type": "postgres" if DATABASE_URL and not DATABASE_URL.startswith("sqlite") else "sqlite",
+        "database_url_prefix": DATABASE_URL.split("://")[0] if DATABASE_URL else "unknown",
+        "is_vercel": bool(os.getenv("VERCEL")),
+        "tables": tables,
+        "user_count": user_count
+    }
 
 # Mount frontend build if it exists
 frontend_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "frontend", "dist")

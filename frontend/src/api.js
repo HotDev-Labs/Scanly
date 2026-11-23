@@ -17,11 +17,19 @@ async function apiRequest(endpoint, options = {}) {
     headers
   });
 
-  const data = await response.json().catch(() => null);
+  let data = null;
+  let text = '';
+  try {
+    data = await response.json();
+  } catch (e) {
+    try {
+      text = await response.text();
+    } catch (_) {}
+  }
 
   if (!response.ok) {
-    const errorMsg = data?.detail || data?.message || `Request failed with status ${response.status}`;
-    throw new Error(errorMsg);
+    const errorMsg = data?.detail || data?.message || text || `Request failed with status ${response.status}`;
+    throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
   }
 
   return data;

@@ -17,22 +17,24 @@ if raw_url:
     if target_url.startswith("postgres://"):
         target_url = target_url.replace("postgres://", "postgresql://", 1)
     
-    # Try connecting with PostgreSQL
-    try:
-        from sqlalchemy import text
-        from sqlalchemy.pool import NullPool
-        test_engine = create_engine(
-            target_url, 
-            poolclass=NullPool,
-            connect_args={"connect_timeout": 3}
-        )
-        with test_engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        engine = test_engine
-        DATABASE_URL = target_url
-        print(f"[Scanly DB]: Successfully connected to PostgreSQL database")
-    except Exception as e:
-        print(f"[Scanly DB Warning]: PostgreSQL connection failed ({e}). Falling back to SQLite.")
+    # Try connecting with PostgreSQL (psycopg2 or pure-python pg8000)
+    for driver_url in [target_url, target_url.replace("postgresql://", "postgresql+pg8000://", 1)]:
+        try:
+            from sqlalchemy import text
+            from sqlalchemy.pool import NullPool
+            test_engine = create_engine(
+                driver_url, 
+                poolclass=NullPool,
+                connect_args={"connect_timeout": 3}
+            )
+            with test_engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            engine = test_engine
+            DATABASE_URL = driver_url
+            print(f"[Scanly DB]: Successfully connected to PostgreSQL database")
+            break
+        except Exception as e:
+            print(f"[Scanly DB Warning]: PostgreSQL connection attempt failed ({e})")
 
 if not engine:
     if os.getenv("VERCEL"):

@@ -20,6 +20,16 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
+  const formatAgentName = (user) => {
+    if (!user) return 'Agent';
+    if (user.full_name && !user.full_name.includes('@')) {
+      return user.full_name;
+    }
+    const raw = user.full_name || user.email || user.username || '';
+    const namePart = raw.includes('@') ? raw.split('@')[0] : raw;
+    return namePart.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'Agent';
+  };
+
   const navItems = [
     {
       id: 'generate-qr',
@@ -127,7 +137,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                     </div>
                   )}
                   <span className="font-semibold text-white whitespace-nowrap">
-                    {currentUser.full_name || currentUser.username || currentUser.email}
+                    {formatAgentName(currentUser)}
                   </span>
                   <button
                     onClick={() => setAvatarModalOpen(true)}
@@ -249,7 +259,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                 <div className="space-y-1.5">
                   <div className="flex items-center space-x-2 text-xs text-slate-700 font-semibold px-1">
                     <User className="w-4 h-4 text-blue-800 flex-shrink-0" />
-                    <span className="truncate">{currentUser.full_name || currentUser.username || currentUser.email}</span>
+                    <span className="truncate">{formatAgentName(currentUser)}</span>
                   </div>
                   <button
                     onClick={() => { setMobileMenuOpen(false); onLogout(); }}

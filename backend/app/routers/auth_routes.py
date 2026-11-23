@@ -99,6 +99,16 @@ def login(login_req: UserLogin, db: Session = Depends(get_db)):
             detail="Incorrect email or password. Please check your credentials or create an account."
         )
 
+    # Auto-ensure full_name is friendly and not an email
+    if not user.full_name or "@" in user.full_name:
+        clean_name = (user.email or user.username).split("@")[0].replace(".", " ").replace("_", " ").title()
+        user.full_name = clean_name
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            pass
+
     token = create_access_token(user)
     return TokenResponse(
         access_token=token,

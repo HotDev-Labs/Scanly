@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from .database import engine, Base, SessionLocal
 from .models import User, Passenger, Luggage
 from .auth import seed_default_users
@@ -91,6 +91,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Resilient path middleware for Vercel Serverless Function rewrites
+@app.middleware("http")
+async def ensure_api_prefix(request: Request, call_next):
+    # In case Vercel rewrites strip or alter '/api', ensure API routes match correctly
+    path = request.url.path
+    if not path.startswith("/api") and not path.startswith("/docs") and not path.startswith("/openapi") and not path.startswith("/assets"):
+        request.scope["path"] = f"/api{path}"
+    return await call_next(request)
+
 # Include Routers
 app.include_router(auth_routes.router)
 app.include_router(passenger_routes.router)
@@ -100,10 +109,12 @@ app.include_router(stats_routes.router)
 app.include_router(import_routes.router)
 app.include_router(avatar_routes.router)
 
+@app.get("/health")
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
 
+@app.get("/db-status")
 @app.get("/api/db-status")
 def db_status():
     from sqlalchemy import inspect

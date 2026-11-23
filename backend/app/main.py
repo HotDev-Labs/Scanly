@@ -15,75 +15,65 @@ from .routers import (
     verification_routes,
     stats_routes,
     import_routes,
+    avatar_routes,
 )
 
 SAMPLE_CSV_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sample_data", "sample_passengers.csv")
 
+_db_initialized = False
+
+def init_db():
+    global _db_initialized
+    if _db_initialized:
+        return
+    try:
+        # Create DB tables
+        Base.metadata.create_all(bind=engine)
+        
+        # Ensure schema migrations run safely across all platforms
+        from sqlalchemy import text
+        for sql in [
+            "ALTER TABLE passengers ADD COLUMN batch_name VARCHAR(100) DEFAULT 'Trip 1'",
+            "ALTER TABLE passengers ADD COLUMN display_id VARCHAR(50)",
+            "UPDATE passengers SET display_id = passenger_id WHERE display_id IS NULL",
+            "ALTER TABLE users ADD COLUMN email VARCHAR(100)",
+            "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500)",
+            "ALTER TABLE passengers ADD COLUMN agent_id INTEGER",
+            "ALTER TABLE passengers ADD COLUMN agent_email VARCHAR(100)"
+        ]:
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(sql))
+            except Exception:
+                pass
+
+        # Seed default users
+        db = SessionLocal()
+        try:
+            seed_default_users(db)
+            
+            # If database has no passengers, seed all 40 passengers without generating QR codes
+            existing_count = db.query(Passenger).count()
+            if existing_count == 0 and os.path.exists(SAMPLE_CSV_PATH):
+                with open(SAMPLE_CSV_PATH, "r", encoding="utf-8") as f:
+                    content = f.read()
+                preview = parse_and_validate_csv_content(content, db)
+                valid_rows = [row for row in preview.rows if row.is_valid]
+                execute_import_passengers(db, valid_rows)
+                print(f"Auto-seeded {len(valid_rows)} passengers.")
+        finally:
+            db.close()
+            
+        _db_initialized = True
+    except Exception as e:
+        print(f"[Scanly DB Init Warning]: {e}")
+
+# Run init_db at import time so tables exist immediately on serverless boots
+init_db()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create DB tables
-    Base.metadata.create_all(bind=engine)
-    
-    # Ensure batch_name and display_id columns exist in passengers table
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE passengers ADD COLUMN batch_name VARCHAR(100) DEFAULT 'Trip 1'"))
-    except Exception:
-        pass
-
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE passengers ADD COLUMN display_id VARCHAR(50)"))
-    except Exception:
-        pass
-
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("UPDATE passengers SET display_id = passenger_id WHERE display_id IS NULL"))
-    except Exception:
-        pass
-
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(100)"))
-    except Exception:
-        pass
-
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE passengers ADD COLUMN agent_id INTEGER"))
-    except Exception:
-        pass
-
-    try:
-        from sqlalchemy import text
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE passengers ADD COLUMN agent_email VARCHAR(100)"))
-    except Exception:
-        pass
-
-    # Seed default users
-    db = SessionLocal()
-    try:
-        seed_default_users(db)
-        
-        # If database has no passengers, seed all 40 passengers without generating QR codes
-        existing_count = db.query(Passenger).count()
-        if existing_count == 0 and os.path.exists(SAMPLE_CSV_PATH):
-            with open(SAMPLE_CSV_PATH, "r", encoding="utf-8") as f:
-                content = f.read()
-            preview = parse_and_validate_csv_content(content, db)
-            valid_rows = [row for row in preview.rows if row.is_valid]
-            execute_import_passengers(db, valid_rows)
-            print(f"Auto-seeded {len(valid_rows)} passengers with 0 QR codes generated.")
-    finally:
-        db.close()
-
+    init_db()
     yield
 
 app = FastAPI(
@@ -112,6 +102,7 @@ app.include_router(luggage_routes.router)
 app.include_router(verification_routes.router)
 app.include_router(stats_routes.router)
 app.include_router(import_routes.router)
+app.include_router(avatar_routes.router)
 
 @app.get("/api/health")
 def health():

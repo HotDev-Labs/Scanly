@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     email: Optional[str] = None
     full_name: str
     role: str
+    avatar_url: Optional[str] = None
 
 class TokenResponse(BaseModel):
     access_token: str

@@ -2,12 +2,18 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    if os.getenv("VERCEL"):
-        DATABASE_URL = "sqlite:////tmp/smart_luggage.db"
+# Support Vercel Postgres / Neon Storage or generic DATABASE_URL
+raw_url = os.getenv("POSTGRES_URL") or os.getenv("DATABASE_URL")
+if raw_url:
+    # SQLAlchemy requires postgresql:// instead of postgres://
+    if raw_url.startswith("postgres://"):
+        DATABASE_URL = raw_url.replace("postgres://", "postgresql://", 1)
     else:
-        DATABASE_URL = "sqlite:///./smart_luggage.db"
+        DATABASE_URL = raw_url
+elif os.getenv("VERCEL"):
+    DATABASE_URL = "sqlite:////tmp/smart_luggage.db"
+else:
+    DATABASE_URL = "sqlite:///./smart_luggage.db"
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):

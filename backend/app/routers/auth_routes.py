@@ -60,16 +60,30 @@ def login(login_req: UserLogin, db: Session = Depends(get_db)):
             detail="Email or username is required"
         )
 
-    user = db.query(User).filter(
-        (User.username == ident) | (User.email == ident)
-    ).first()
-    
+    try:
+        user = db.query(User).filter(
+            (User.username == ident) | (User.email == ident)
+        ).first()
+    except Exception as e:
+        # Auto-heal: Ensure DB tables exist if called in cold serverless container
+        from ..main import init_db
+        try:
+            init_db()
+            user = db.query(User).filter(
+                (User.username == ident) | (User.email == ident)
+            ).first()
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Database initialization failed: {str(e)}"
+            )
+
     if not user or not verify_password(login_req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password. Please check your credentials or create an account."
         )
-    
+
     token = create_access_token(user)
     return TokenResponse(
         access_token=token,

@@ -11,11 +11,14 @@ import {
   ChevronRight,
   User,
   LogOut,
-  LogIn
+  LogIn,
+  Camera
 } from 'lucide-react';
+import AvatarUploadModal from './AvatarUploadModal';
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAuth, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   const navItems = [
     {
@@ -109,13 +112,30 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
             {currentUser ? (
               <div className="flex items-center space-x-2">
                 <div 
-                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-900/70 rounded-xl text-xs font-semibold text-white border border-blue-700/50 shadow-2xs"
+                  className="flex items-center space-x-2 px-3 py-1.5 bg-blue-900/70 rounded-xl text-xs font-semibold text-white border border-blue-700/50 shadow-2xs"
                   title={`Logged in as ${currentUser.full_name || currentUser.username} (${currentUser.email || ''})`}
                 >
-                  <User className="w-3.5 h-3.5 text-blue-300 flex-shrink-0" />
+                  {currentUser.avatar_url ? (
+                    <img 
+                      src={currentUser.avatar_url} 
+                      alt="Avatar" 
+                      className="w-5 h-5 rounded-full object-cover border border-blue-400 shrink-0" 
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-blue-700 flex items-center justify-center text-[11px] font-bold text-white uppercase shrink-0">
+                      {(currentUser.full_name || currentUser.username || 'A').charAt(0)}
+                    </div>
+                  )}
                   <span className="font-semibold text-white whitespace-nowrap">
                     {currentUser.full_name || currentUser.username || currentUser.email}
                   </span>
+                  <button
+                    onClick={() => setAvatarModalOpen(true)}
+                    className="p-1 hover:bg-blue-800 rounded-lg text-blue-300 hover:text-white transition-colors cursor-pointer ml-1"
+                    title="Upload or change agent avatar"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 <button
                   onClick={onLogout}
@@ -257,6 +277,18 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
           </div>
         </div>
       )}
+
+      {/* Avatar Upload Modal */}
+      <AvatarUploadModal
+        isOpen={avatarModalOpen}
+        onClose={() => setAvatarModalOpen(false)}
+        currentAvatar={currentUser?.avatar_url}
+        onAvatarUpdated={(newUrl) => {
+          if (currentUser) {
+            currentUser.avatar_url = newUrl;
+          }
+        }}
+      />
     </>
   );
 }

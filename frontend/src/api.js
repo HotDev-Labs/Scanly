@@ -42,6 +42,21 @@ export const api = {
     method: 'PUT',
     body: JSON.stringify({ full_name: fullName })
   }),
+  uploadAvatar: async (file) => {
+    const token = getAuthToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(`/api/avatar/upload?filename=${encodeURIComponent(file.name)}`, {
+      method: 'POST',
+      body: file,
+      headers
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => null);
+      throw new Error(err?.detail || `Upload failed with status ${response.status}`);
+    }
+    return response.json();
+  },
 
   // Passengers
   getPassengers: (search = '', destination = '', batch = '') => {

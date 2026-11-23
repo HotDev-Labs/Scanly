@@ -58,9 +58,6 @@ def init_db():
     except Exception as e:
         print(f"[Scanly DB Init Warning]: {e}")
 
-# Run init_db at import time so tables exist immediately on serverless boots
-init_db()
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()

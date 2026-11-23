@@ -20,7 +20,12 @@ if raw_url:
     # Try connecting with PostgreSQL
     try:
         from sqlalchemy import text
-        test_engine = create_engine(target_url, pool_pre_ping=True, pool_recycle=300)
+        test_engine = create_engine(
+            target_url, 
+            pool_pre_ping=True, 
+            pool_recycle=300,
+            connect_args={"connect_timeout": 3}
+        )
         with test_engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         engine = test_engine
@@ -48,6 +53,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
+    try:
+        from .main import init_db
+        init_db()
+    except Exception as e:
+        print(f"[Scanly get_db init warning]: {e}")
     db = SessionLocal()
     try:
         yield db

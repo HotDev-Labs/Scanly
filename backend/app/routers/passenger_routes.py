@@ -18,9 +18,14 @@ def list_batches(
     current_user: User = Depends(get_current_user)
 ):
     """
-    List distinct trip/batch names.
+    List distinct trip/batch names scoped to the active agent account.
     """
-    results = db.query(Passenger.batch_name).distinct().all()
+    query = db.query(Passenger.batch_name)
+    if current_user.role != "admin":
+        query = query.filter(
+            or_(Passenger.agent_id == current_user.id, Passenger.agent_email == current_user.username)
+        )
+    results = query.distinct().all()
     batches = sorted([r[0] for r in results if r[0]])
     if not batches:
         batches = ["Trip 1"]
@@ -36,16 +41,22 @@ def delete_batch(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Deletes all passengers and luggage in a specific trip/batch.
+    Deletes all passengers and luggage in a specific trip/batch for this agent.
     """
     clean_batch = urllib.parse.unquote(batch_name).strip()
-    passengers = db.query(Passenger).filter(Passenger.batch_name == clean_batch).all()
+    query = db.query(Passenger).filter(Passenger.batch_name == clean_batch)
+    if current_user.role != "admin":
+        query = query.filter(
+            or_(Passenger.agent_id == current_user.id, Passenger.agent_email == current_user.username)
+        )
+    passengers = query.all()
     if not passengers:
         return {"message": f"Trip '{clean_batch}' deleted successfully.", "deleted_count": 0}
     
     p_ids = [p.passenger_id for p in passengers]
     db.query(Luggage).filter(Luggage.passenger_id.in_(p_ids)).delete(synchronize_session=False)
-    db.query(Passenger).filter(Passenger.batch_name == clean_batch).delete(synchronize_session=False)
+    for p in passengers:
+        db.delete(p)
     db.commit()
     return {"message": f"Trip '{clean_batch}' and its {len(p_ids)} passengers deleted successfully."}
 
@@ -58,6 +69,13 @@ def list_passengers(
     current_user: User = Depends(get_current_user)
 ):
     query = db.query(Passenger)
+    if current_user.role != "admin":
+        query = query.filter(
+            or_(
+                Passenger.agent_id == current_user.id, 
+                Passenger.agent_email == current_user.username
+            )
+        )
     if isinstance(batch, str) and batch.strip() and batch.lower() != "all":
         query = query.filter(Passenger.batch_name == batch.strip())
     if isinstance(search, str) and search.strip():
@@ -157,6 +175,8 @@ def create_passenger(
     if existing:
         existing.display_id = d_id
         existing.batch_name = b_name
+        existing.agent_id = current_user.id
+        existing.agent_email = getattr(current_user, "email", None) or current_user.username
         existing.name = passenger_in.name
         existing.mobile_number = passenger_in.mobile_number
         existing.boarding_stop = passenger_in.boarding_stop
@@ -170,6 +190,8 @@ def create_passenger(
         passenger_id=unique_id,
         display_id=d_id,
         batch_name=b_name,
+        agent_id=current_user.id,
+        agent_email=getattr(current_user, "email", None) or current_user.username,
         name=passenger_in.name,
         mobile_number=passenger_in.mobile_number,
         boarding_stop=passenger_in.boarding_stop,

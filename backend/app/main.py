@@ -46,6 +46,27 @@ async def lifespan(app: FastAPI):
     except Exception:
         pass
 
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(100)"))
+    except Exception:
+        pass
+
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE passengers ADD COLUMN agent_id INTEGER"))
+    except Exception:
+        pass
+
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE passengers ADD COLUMN agent_email VARCHAR(100)"))
+    except Exception:
+        pass
+
     # Seed default users
     db = SessionLocal()
     try:

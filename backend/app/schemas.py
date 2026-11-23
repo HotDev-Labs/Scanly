@@ -3,14 +3,21 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 # User & Auth
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    full_name: Optional[str] = None
+
 class UserLogin(BaseModel):
-    username: str
+    email: Optional[str] = None
+    username: Optional[str] = None
     password: str
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     username: str
+    email: Optional[str] = None
     full_name: str
     role: str
 

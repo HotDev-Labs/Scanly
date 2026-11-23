@@ -33,8 +33,9 @@ def create_access_token(user: User) -> str:
     payload = {
         "user_id": user.id,
         "username": user.username,
+        "email": getattr(user, "email", None) or user.username,
         "role": user.role,
-        "exp": int(time.time()) + (24 * 3600)  # 24 hours
+        "exp": int(time.time()) + (7 * 24 * 3600)  # 7 days
     }
     payload_bytes = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode('utf-8').rstrip('=')

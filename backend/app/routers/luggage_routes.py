@@ -6,6 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from ..database import get_db
 from ..models import Luggage, Passenger, User, VerificationLog
 from ..schemas import LuggageResponse
@@ -185,12 +186,21 @@ def list_luggage(
     current_user: User = Depends(get_current_user)
 ):
     query = db.query(Luggage)
+    if current_user.role != "admin":
+        query = query.join(Passenger, Luggage.passenger_id == Passenger.passenger_id).filter(
+            or_(Passenger.agent_id == current_user.id, Passenger.agent_email == current_user.username)
+        )
+    elif batch_name:
+        query = query.join(Passenger, Luggage.passenger_id == Passenger.passenger_id)
+
     if status:
         query = query.filter(Luggage.status == status.upper())
     if passenger_id:
         query = query.filter(Luggage.passenger_id == passenger_id)
-    if batch_name:
-        query = query.join(Passenger, Luggage.passenger_id == Passenger.passenger_id).filter(Passenger.batch_name == batch_name)
+    if batch_name and current_user.role != "admin":
+        query = query.filter(Passenger.batch_name == batch_name)
+    elif batch_name and current_user.role == "admin":
+        query = query.filter(Passenger.batch_name == batch_name)
     return query.order_by(Luggage.id.asc()).all()
 
 @router.post("/scan")

@@ -4,12 +4,12 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.database import Base
 from backend.app.models import User, Passenger, Luggage
 from backend.app.auth import hash_password, create_access_token
-from backend.app.routers.auth_routes import login
-from backend.app.routers.passenger_routes import list_passengers, create_passenger, generate_qr_for_passenger
+from backend.app.routers.auth_routes import login, signup
+from backend.app.routers.passenger_routes import list_passengers, create_passenger, generate_qr_for_passenger, list_batches
 from backend.app.routers.luggage_routes import list_luggage
 from backend.app.routers.verification_routes import verify_luggage, get_verification_history
 from backend.app.routers.stats_routes import get_dashboard_stats
-from backend.app.schemas import UserLogin, PassengerCreate, VerificationRequest
+from backend.app.schemas import UserLogin, UserRegister, PassengerCreate, VerificationRequest
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
@@ -39,6 +39,55 @@ def test_auth_login_endpoint(test_db):
     res = login(login_req, db)
     assert res.access_token is not None
     assert res.user.username == "admin"
+
+def test_agent_signup_and_trip_isolation(test_db):
+    db, admin = test_db
+    # 1. Agent A signs up
+    signup_req_a = UserRegister(email="agent_a@bus.com", password="password123", full_name="Agent Alpha")
+    res_a = signup(signup_req_a, db)
+    assert res_a.access_token is not None
+    assert res_a.user.email == "agent_a@bus.com"
+
+    user_a = db.query(User).filter(User.email == "agent_a@bus.com").first()
+
+    # Agent A creates a passenger in "Morning Express"
+    p_a = PassengerCreate(
+        passenger_id="PA01",
+        name="Rohan Sharma",
+        mobile_number="9876543210",
+        boarding_stop="Station A",
+        destination_stop="Station B",
+        batch_name="Morning Express",
+        luggage_count=1
+    )
+    create_passenger(p_a, db, current_user=user_a)
+
+    # 2. Agent B signs up
+    signup_req_b = UserRegister(email="agent_b@bus.com", password="password456", full_name="Agent Beta")
+    res_b = signup(signup_req_b, db)
+    user_b = db.query(User).filter(User.email == "agent_b@bus.com").first()
+
+    # Agent B creates a passenger in "Night Rider"
+    p_b = PassengerCreate(
+        passenger_id="PB01",
+        name="Anjali Verma",
+        mobile_number="9123456789",
+        boarding_stop="Station X",
+        destination_stop="Station Y",
+        batch_name="Night Rider",
+        luggage_count=2
+    )
+    create_passenger(p_b, db, current_user=user_b)
+
+    # Verify Agent A only sees "Morning Express"
+    batches_a = list_batches(db, current_user=user_a)
+    assert "Morning Express" in batches_a
+    assert "Night Rider" not in batches_a
+
+    # Verify Agent B only sees "Night Rider"
+    batches_b = list_batches(db, current_user=user_b)
+    assert "Night Rider" in batches_b
+    assert "Morning Express" not in batches_b
 
 def test_passenger_creation_and_luggage_generation(test_db):
     db, admin = test_db

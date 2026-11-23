@@ -261,7 +261,13 @@ def fetch_google_sheets_csv(sheet_url_or_id: str) -> str:
         raise ValueError(f"Failed to fetch Google Sheet (HTTP {response.status_code}). Ensure the sheet link is shared as 'Anyone with the link can view'.")
     return response.text
 
-def execute_import_passengers(db: Session, passenger_records: List[Any], default_batch: str = "Trip 1") -> Tuple[int, List[str]]:
+def execute_import_passengers(
+    db: Session, 
+    passenger_records: List[Any], 
+    default_batch: str = "Trip 1",
+    agent_id: Optional[int] = None,
+    agent_email: Optional[str] = None
+) -> Tuple[int, List[str]]:
     """
     Inserts or updates valid passenger records without pre-generating QR codes.
     QR codes are only created when the operator explicitly clicks 'Create QR Code'.
@@ -304,6 +310,8 @@ def execute_import_passengers(db: Session, passenger_records: List[Any], default
         if existing:
             existing.display_id = d_id
             existing.batch_name = b_name
+            existing.agent_id = agent_id or existing.agent_id
+            existing.agent_email = agent_email or existing.agent_email
             existing.name = name
             existing.mobile_number = mobile
             existing.boarding_stop = boarding
@@ -316,6 +324,8 @@ def execute_import_passengers(db: Session, passenger_records: List[Any], default
             passenger_id=p_id,
             display_id=d_id,
             batch_name=b_name,
+            agent_id=agent_id,
+            agent_email=agent_email,
             name=name,
             mobile_number=mobile,
             boarding_stop=boarding,

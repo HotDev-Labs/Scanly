@@ -28,6 +28,17 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 export const api = {
+  // Auth
+  login: (email, password) => apiRequest('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  }),
+  signup: (email, password, fullName = '') => apiRequest('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, full_name: fullName })
+  }),
+  getMe: () => apiRequest('/auth/me'),
+
   // Passengers
   getPassengers: (search = '', destination = '', batch = '') => {
     const params = new URLSearchParams();

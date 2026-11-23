@@ -8,10 +8,13 @@ import {
   PackageCheck, 
   FileSpreadsheet, 
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  User,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab }) {
+export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAuth, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -101,6 +104,39 @@ export default function Navbar({ activeTab, setActiveTab }) {
             })}
           </nav>
 
+          {/* Desktop Right: Agent Account Status & Switcher */}
+          <div className="hidden md:flex items-center space-x-2 pl-3 border-l border-blue-700/60">
+            {currentUser ? (
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-900/70 rounded-xl text-xs font-semibold text-blue-100 border border-blue-700/50 shadow-2xs"
+                  title={`Logged in as ${currentUser.email || currentUser.username}`}
+                >
+                  <User className="w-3.5 h-3.5 text-blue-300 flex-shrink-0" />
+                  <span className="max-w-[150px] truncate font-medium">
+                    {currentUser.email || currentUser.username}
+                  </span>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="px-2.5 py-1.5 text-xs font-bold text-rose-200 hover:text-white bg-rose-900/40 hover:bg-rose-800/80 rounded-xl transition-colors cursor-pointer flex items-center space-x-1 border border-rose-800/50"
+                  title="Sign out of this agent account"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                className="px-3.5 py-1.5 text-xs font-bold bg-white text-blue-800 hover:bg-blue-50 rounded-xl transition-all shadow-xs cursor-pointer flex items-center space-x-1.5"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Agent Login</span>
+              </button>
+            )}
+          </div>
+
           {/* Mobile Right Quick Indicator */}
           <div className="flex md:hidden items-center">
             <button
@@ -187,10 +223,35 @@ export default function Navbar({ activeTab, setActiveTab }) {
               })}
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-3 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>Zero-Mismatch Luggage System</span>
+            {/* Drawer Footer with Agent Account */}
+            <div className="p-3 border-t border-slate-200 bg-slate-50 space-y-2">
+              {currentUser ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center space-x-2 text-xs text-slate-700 font-semibold px-1">
+                    <User className="w-4 h-4 text-blue-800 flex-shrink-0" />
+                    <span className="truncate">{currentUser.email || currentUser.username}</span>
+                  </div>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                    className="w-full py-2 px-3 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1.5 border border-rose-200"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out Agent</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setMobileMenuOpen(false); onOpenAuth(); }}
+                  className="w-full py-2 px-3 text-xs font-bold text-white bg-blue-800 hover:bg-blue-900 rounded-xl transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shadow-xs"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Agent Login / Sign Up</span>
+                </button>
+              )}
+              <div className="pt-1 text-[10px] text-slate-400 flex items-center justify-center space-x-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Scanly Transit Verification</span>
+              </div>
             </div>
 
           </div>

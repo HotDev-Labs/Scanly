@@ -7,10 +7,11 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, index=True, nullable=False)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    email = Column(String(100), unique=True, index=True, nullable=True)
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(100), nullable=False)
-    role = Column(String(20), default="operator", nullable=False)  # "admin" or "operator"
+    role = Column(String(20), default="agent", nullable=False)  # "admin" or "agent"
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Passenger(Base):
@@ -19,6 +20,8 @@ class Passenger(Base):
     passenger_id = Column(String(50), primary_key=True, index=True)
     display_id = Column(String(50), nullable=True, index=True)
     batch_name = Column(String(100), default="Trip 1", nullable=True, index=True)
+    agent_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    agent_email = Column(String(100), nullable=True, index=True)
     name = Column(String(100), nullable=False, index=True)
     mobile_number = Column(String(20), nullable=False, index=True)
     boarding_stop = Column(String(100), nullable=False)

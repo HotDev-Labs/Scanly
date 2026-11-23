@@ -148,7 +148,13 @@ async def execute_import(
     if not rows:
         raise HTTPException(status_code=400, detail="No passenger records provided for import.")
 
-    count, warnings = execute_import_passengers(db, rows, default_batch=batch_to_use)
+    count, warnings = execute_import_passengers(
+        db, 
+        rows, 
+        default_batch=batch_to_use,
+        agent_id=current_user.id,
+        agent_email=getattr(current_user, "email", None) or current_user.username
+    )
     return {
         "message": f"Successfully imported {count} passengers for '{batch_to_use}'.",
         "imported_count": count,

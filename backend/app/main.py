@@ -58,16 +58,10 @@ def init_db():
     except Exception as e:
         print(f"[Scanly DB Init Warning]: {e}")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    yield
-
 app = FastAPI(
     title="Scanly API",
     description="Backend API for Scanly luggage verification, QR generation, tracking, and Google Sheets/CSV import.",
     version="1.0.0",
-    lifespan=lifespan,
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json"

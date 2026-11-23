@@ -20,10 +20,10 @@ if raw_url:
     # Try connecting with PostgreSQL
     try:
         from sqlalchemy import text
+        from sqlalchemy.pool import NullPool
         test_engine = create_engine(
             target_url, 
-            pool_pre_ping=True, 
-            pool_recycle=300,
+            poolclass=NullPool,
             connect_args={"connect_timeout": 3}
         )
         with test_engine.connect() as conn:

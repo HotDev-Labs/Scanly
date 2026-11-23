@@ -17,24 +17,19 @@ if raw_url:
     if target_url.startswith("postgres://"):
         target_url = target_url.replace("postgres://", "postgresql://", 1)
     
-    # Try connecting with PostgreSQL (psycopg2 or pure-python pg8000)
-    for driver_url in [target_url, target_url.replace("postgresql://", "postgresql+pg8000://", 1)]:
-        try:
-            from sqlalchemy import text
-            from sqlalchemy.pool import NullPool
-            test_engine = create_engine(
-                driver_url, 
-                poolclass=NullPool,
-                connect_args={"connect_timeout": 3}
-            )
-            with test_engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-            engine = test_engine
-            DATABASE_URL = driver_url
-            print(f"[Scanly DB]: Successfully connected to PostgreSQL database")
-            break
-        except Exception as e:
-            print(f"[Scanly DB Warning]: PostgreSQL connection attempt failed ({e})")
+    # Prefer pure-python pg8000 for serverless stability without native libpq dependencies
+    pg_url = target_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    try:
+        from sqlalchemy.pool import NullPool
+        engine = create_engine(
+            pg_url,
+            poolclass=NullPool,
+            pool_pre_ping=True
+        )
+        DATABASE_URL = pg_url
+        print(f"[Scanly DB]: Configured PostgreSQL engine (pg8000)")
+    except Exception as e:
+        print(f"[Scanly DB Warning]: PostgreSQL engine configuration failed ({e}). Falling back to SQLite.")
 
 if not engine:
     if os.getenv("VERCEL"):
@@ -44,7 +39,7 @@ if not engine:
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False, "timeout": 30.0})
 
 # Enable Foreign Key enforcement in SQLite
-if DATABASE_URL.startswith("sqlite"):
+if DATABASE_URL and DATABASE_URL.startswith("sqlite"):
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()

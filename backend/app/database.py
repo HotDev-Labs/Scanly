@@ -17,17 +17,27 @@ if raw_url:
     if target_url.startswith("postgres://"):
         target_url = target_url.replace("postgres://", "postgresql://", 1)
     
-    try:
-        from sqlalchemy.pool import NullPool
-        engine = create_engine(
-            target_url,
-            poolclass=NullPool,
-            pool_pre_ping=True
-        )
-        DATABASE_URL = target_url
-        print(f"[Scanly DB]: Configured PostgreSQL engine with psycopg2")
-    except Exception as e:
-        print(f"[Scanly DB Warning]: PostgreSQL setup failed ({e}). Falling back to SQLite.")
+    # Try psycopg (v3), psycopg2, and pg8000 drivers in priority order
+    drivers = [
+        target_url,
+        target_url.replace("postgresql://", "postgresql+psycopg2://", 1),
+        target_url.replace("postgresql://", "postgresql+pg8000://", 1),
+    ]
+    from sqlalchemy.pool import NullPool
+    for candidate in drivers:
+        try:
+            test_eng = create_engine(
+                candidate,
+                poolclass=NullPool,
+                pool_pre_ping=True
+            )
+            test_eng.dialect.dbapi
+            engine = test_eng
+            DATABASE_URL = candidate
+            print(f"[Scanly DB]: Configured PostgreSQL engine with {candidate.split('://')[0]}")
+            break
+        except Exception as e:
+            print(f"[Scanly DB Warning]: PostgreSQL driver attempt failed for {candidate.split('://')[0]}: {e}")
 
 if not engine:
     # On serverless (Vercel/Lambda) or read-only filesystem, always use /tmp

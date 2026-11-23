@@ -1,7 +1,7 @@
 import csv
 import io
 import re
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Optional
 import requests
 import openpyxl
 from sqlalchemy.orm import Session

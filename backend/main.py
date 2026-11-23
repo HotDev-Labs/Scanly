@@ -7,6 +7,10 @@ import os
 import json
 import traceback
 
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 try:
     from app.main import app
 except Exception as import_exc:

@@ -17,19 +17,28 @@ if raw_url:
     if target_url.startswith("postgres://"):
         target_url = target_url.replace("postgres://", "postgresql://", 1)
     
-    # Prefer pure-python pg8000 for serverless stability without native libpq dependencies
-    pg_url = target_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    # Try pg8000 first (pure python), then standard psycopg2
     try:
         from sqlalchemy.pool import NullPool
-        engine = create_engine(
-            pg_url,
-            poolclass=NullPool,
-            pool_pre_ping=True
-        )
-        DATABASE_URL = pg_url
-        print(f"[Scanly DB]: Configured PostgreSQL engine (pg8000)")
+        for candidate_url in [
+            target_url.replace("postgresql://", "postgresql+pg8000://", 1),
+            target_url
+        ]:
+            try:
+                candidate_eng = create_engine(
+                    candidate_url,
+                    poolclass=NullPool,
+                    pool_pre_ping=True
+                )
+                candidate_eng.dialect.dbapi
+                engine = candidate_eng
+                DATABASE_URL = candidate_url
+                print(f"[Scanly DB]: Successfully loaded driver for {candidate_url.split('://')[0]}")
+                break
+            except Exception as drv_err:
+                print(f"[Scanly DB Warning]: Driver check failed for {candidate_url.split('://')[0]}: {drv_err}")
     except Exception as e:
-        print(f"[Scanly DB Warning]: PostgreSQL engine configuration failed ({e}). Falling back to SQLite.")
+        print(f"[Scanly DB Warning]: PostgreSQL setup failed ({e}). Falling back to SQLite.")
 
 if not engine:
     if os.getenv("VERCEL"):

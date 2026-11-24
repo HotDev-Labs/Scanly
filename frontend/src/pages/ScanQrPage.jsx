@@ -13,7 +13,6 @@ import {
   Luggage, 
   RotateCcw, 
   Check, 
-  Sparkles,
   ArrowRight,
   Volume2
 } from 'lucide-react';
@@ -33,30 +32,17 @@ export default function ScanQrPage() {
   // Consecutive scan cooldown timer
   const [scanCooldown, setScanCooldown] = useState(false);
 
-  // Sample quick tokens to test directly without camera
-  const [samplePassengers, setSamplePassengers] = useState([]);
-
   const scannerRef = useRef(null);
   const cooldownRef = useRef(false);
   const qrRegionId = "direct-qr-scanner-region";
 
   useEffect(() => {
-    loadSampleTags();
     startCamera();
 
     return () => {
       stopCamera();
     };
   }, []);
-
-  const loadSampleTags = async () => {
-    try {
-      const data = await api.getPassengers();
-      setSamplePassengers(data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   // Start Camera
   const startCamera = async () => {
@@ -92,7 +78,7 @@ export default function ScanQrPage() {
         );
       } catch (err) {
         console.error("Unable to start camera:", err);
-        setCameraError(err.message || 'Camera access not granted. You can use manual entry or test pills below.');
+        setCameraError(err.message || 'Camera access not granted. You can use manual tag ID entry below.');
         setIsScanning(false);
       }
     }, 200);
@@ -339,38 +325,6 @@ export default function ScanQrPage() {
           </button>
         </form>
 
-        {/* 1-Tap Simulation Test Pills */}
-        {samplePassengers.length > 0 && (
-          <div className="pt-2 border-t border-slate-100">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-blue-800" />
-              <span>Quick Test (Tap to simulate scanning):</span>
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {samplePassengers.slice(0, 6).map((p) => {
-                const isAllDone = p.luggage_items && p.luggage_items.length > 0 && p.luggage_items.every(l => l.status === 'COLLECTED');
-                const bCount = p.luggage_count || (p.luggage_items ? p.luggage_items.length : 1);
-                return (
-                  <button
-                    key={p.passenger_id}
-                    type="button"
-                    onClick={() => handleProcessScannedCode(p.passenger_id)}
-                    className={`text-xs px-2.5 py-1.5 rounded-lg border font-mono font-medium flex items-center space-x-1.5 transition-colors cursor-pointer ${
-                      isAllDone
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        : 'bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200'
-                    }`}
-                  >
-                    <span className="font-bold">{p.display_id || p.passenger_id}</span>
-                    <span className="text-[10px] text-slate-600 font-sans">
-                      ({p.name} • {bCount} Bag{bCount > 1 ? 's' : ''})
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ACTIVE VERIFICATION CARD (Real-time update with each consecutive scan) */}

@@ -6,6 +6,7 @@ import GenerateQrPage from './pages/GenerateQrPage';
 import ScanQrPage from './pages/ScanQrPage';
 import CollectionStatusPage from './pages/CollectionStatusPage';
 import ImportPage from './pages/ImportPage';
+import ProfilePage from './pages/ProfilePage';
 import { api, getAuthToken, removeAuthToken } from './api';
 import { RefreshCw } from 'lucide-react';
 
@@ -142,6 +143,18 @@ export default function App() {
             selectedTrip={selectedTrip} 
             setSelectedTrip={handleTripChange} 
             setActiveTab={setActiveTab} 
+          />
+        )}
+
+        {activeTab === 'profile' && (
+          <ProfilePage 
+            key={currentUser ? currentUser.id : 'anon'}
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+            selectedTrip={selectedTrip} 
+            setSelectedTrip={handleTripChange} 
+            setActiveTab={setActiveTab} 
+            onLogout={handleLogout}
           />
         )}
       </main>

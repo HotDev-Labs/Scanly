@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Bus, 
   QrCode, 
   ScanLine, 
   PackageCheck, 
@@ -11,6 +10,7 @@ import {
   Camera 
 } from 'lucide-react';
 import AvatarUploadModal from './AvatarUploadModal';
+import ScanlyLogo from './ScanlyLogo';
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAuth, onLogout }) {
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
@@ -65,11 +65,11 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
           {/* Left: Brand Logo & Title (No 3-line bar menu) */}
           <div className="flex items-center space-x-3 z-10">
             <div 
-              className="flex items-center space-x-2.5 cursor-pointer select-none" 
+              className="flex items-center space-x-2.5 cursor-pointer select-none group" 
               onClick={() => setActiveTab('generate-qr')}
             >
-              <div className="bg-white text-blue-800 p-2 rounded-xl shadow-xs">
-                <Bus className="w-5 h-5" />
+              <div className="bg-white p-1 rounded-xl shadow-xs transition-transform group-hover:scale-105 flex items-center justify-center">
+                <ScanlyLogo className="w-6 h-6" />
               </div>
               <span className="font-extrabold text-base sm:text-lg tracking-tight text-white">Scanly</span>
             </div>

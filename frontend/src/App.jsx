@@ -7,6 +7,7 @@ import ScanQrPage from './pages/ScanQrPage';
 import CollectionStatusPage from './pages/CollectionStatusPage';
 import ImportPage from './pages/ImportPage';
 import ProfilePage from './pages/ProfilePage';
+import ScanlyLogo from './components/ScanlyLogo';
 import { api, getAuthToken, removeAuthToken } from './api';
 import { RefreshCw } from 'lucide-react';
 
@@ -78,9 +79,10 @@ export default function App() {
   if (authChecking) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <RefreshCw className="w-8 h-8 text-blue-800 animate-spin mb-3" />
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-          Loading Scanly...
+        <ScanlyLogo className="w-12 h-12 mb-3 shadow-md rounded-2xl animate-pulse" />
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+          <RefreshCw className="w-3.5 h-3.5 text-blue-800 animate-spin" />
+          <span>Loading Scanly...</span>
         </span>
       </div>
     );

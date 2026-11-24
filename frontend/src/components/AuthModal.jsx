@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { api, setAuthToken } from '../api';
 import { 
-  Bus, 
   Mail, 
   Lock, 
   User, 
@@ -11,6 +10,7 @@ import {
   X,
   ShieldCheck
 } from 'lucide-react';
+import ScanlyLogo from './ScanlyLogo';
 
 export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode); // 'login' or 'signup'
@@ -68,8 +68,8 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
         {/* Modal Top Header */}
         <div className="bg-blue-800 text-white px-6 py-5 flex items-center justify-between border-b border-blue-900">
           <div className="flex items-center space-x-2.5">
-            <div className="bg-white text-blue-800 p-2 rounded-xl shadow-xs">
-              <Bus className="w-5 h-5" />
+            <div className="bg-white p-1 rounded-xl shadow-xs flex items-center justify-center">
+              <ScanlyLogo className="w-6 h-6" />
             </div>
             <div>
               <div className="font-extrabold text-base tracking-tight">Scanly Agent Portal</div>

@@ -69,3 +69,4 @@ export default function ScanlyLogo({ className = "w-7 h-7" }) {
     </svg>
   );
 }
+

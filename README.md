@@ -25,6 +25,14 @@ A fast, mobile-responsive web solution for transit stations to eliminate passeng
 
 ---
 
+## Documentation & Architecture Guide
+
+For a complete breakdown of the technology stack, file-by-file explanations, frontend-to-backend communication flows, and enterprise blueprints for integrating with travel carriers (such as FlixBus, InterCity, and Greyhound), see:
+
+* 📘 [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)
+
+---
+
 ## How to Run
 
 1. **Start the Application**:

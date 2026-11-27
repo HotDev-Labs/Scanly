@@ -8,6 +8,7 @@ import CollectionStatusPage from './pages/CollectionStatusPage';
 import ImportPage from './pages/ImportPage';
 import ProfilePage from './pages/ProfilePage';
 import ScanlyLogo from './components/ScanlyLogo';
+import PublicVerifyModal from './components/PublicVerifyModal';
 import { api, getAuthToken, removeAuthToken } from './api';
 import { RefreshCw } from 'lucide-react';
 
@@ -19,6 +20,20 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
+  const [publicVerifyTag, setPublicVerifyTag] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tag = params.get('tag') || params.get('id') || params.get('passenger_id');
+      if (tag) return tag;
+      const path = window.location.pathname || '';
+      if (path.includes('/verify/') && path.split('/verify/')[1]) {
+        return decodeURIComponent(path.split('/verify/')[1]);
+      }
+      return '';
+    } catch (e) {
+      return '';
+    }
+  });
 
   useEffect(() => {
     checkCurrentUser();
@@ -76,7 +91,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (authChecking) {
+  if (authChecking && !publicVerifyTag) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <ScanlyLogo className="w-12 h-12 mb-3 shadow-sm rounded-2xl" />
@@ -85,6 +100,21 @@ export default function App() {
           <span>Loading Scanly...</span>
         </span>
       </div>
+    );
+  }
+
+  // If a public luggage verification tag is present (e.g. from standard phone camera scan)
+  if (publicVerifyTag) {
+    return (
+      <PublicVerifyModal 
+        tag={publicVerifyTag} 
+        onSwitchToAgent={() => {
+          setPublicVerifyTag('');
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname.replace('/verify', '') || '/');
+          } catch (e) {}
+        }} 
+      />
     );
   }
 

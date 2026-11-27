@@ -30,26 +30,20 @@ def mask_customer_name(name: str) -> str:
 
 def generate_customer_qr_payload(passenger: Passenger) -> str:
     """
-    Locked, privacy-protected QR code payload.
-    When scanned by any standard unauthorized phone camera or public barcode reader,
-    it does NOT reveal private phone numbers or destination details.
-    It displays the Passenger ID, masked name, and a security lock notice.
-    Only authorized agents using the Scanly app with the passenger's verification PIN
-    can unlock and pull full passenger details.
+    Generate secure web link for luggage QR tag.
+    When scanned by ANY normal phone camera (iPhone, Android, Google Lens):
+    It takes them directly to a secure verification link:
+    e.g. https://scanly-henna.vercel.app/verify?tag=Trip%201-P101
+    Zero private customer data is displayed on the camera screen!
+    The page asks for the passenger PIN to unlock.
+    In the Scanly web app, the scanner directly parses the tag from this URL,
+    opens the in-app verification pop-up, asks for PIN, and allows pull & push!
     """
-    display_id = getattr(passenger, "display_id", None) or passenger.passenger_id
-    batch_info = f"Trip: {passenger.batch_name}\n" if passenger.batch_name else ""
-    masked_name = mask_customer_name(passenger.name)
-    return (
-        f"🔒 SCANLY PROTECTED LUGGAGE\n"
-        f"Status: ENCRYPTED & LOCKED\n"
-        f"Passenger ID: {display_id}\n"
-        f"Name: {masked_name}\n"
-        f"{batch_info}"
-        f"Total Bags: {passenger.luggage_count}\n"
-        f"Tag: {passenger.passenger_id}\n"
-        f"[Authorization Required: Scan with Scanly App & Enter PIN to Unlock]"
-    )
+    import os
+    import urllib.parse
+    base_url = (os.getenv("APP_URL") or "https://scanly-henna.vercel.app").rstrip("/")
+    clean_tag = urllib.parse.quote(str(passenger.passenger_id).strip())
+    return f"{base_url}/verify?tag={clean_tag}"
 
 def create_qr_code_image_data_url(payload: str) -> str:
     """

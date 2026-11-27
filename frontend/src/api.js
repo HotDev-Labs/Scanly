@@ -113,6 +113,10 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ code, auto_collect: autoCollect, pin, require_pin: requirePin })
   }),
+  publicVerify: (tag, pin = null) => apiRequest('/luggage/public-verify', {
+    method: 'POST',
+    body: JSON.stringify({ tag, pin })
+  }),
   getLuggageByToken: (token) => apiRequest(`/luggage/token/${encodeURIComponent(token)}`),
   handoverLuggageByToken: (token) => apiRequest(`/luggage/token/${encodeURIComponent(token)}/handover`, { method: 'POST' }),
   handoverAllForPassenger: (passengerId) => apiRequest(`/luggage/passenger/${encodeURIComponent(passengerId)}/handover-all`, { method: 'POST' }),

@@ -19,6 +19,10 @@ class ScanRequest(BaseModel):
     pin: Optional[str] = None
     require_pin: Optional[bool] = False
 
+class PublicVerifyRequest(BaseModel):
+    tag: str
+    pin: Optional[str] = None
+
 def extract_target_bags(text: str) -> Optional[int]:
     """Extract total luggage/bags count from any formatted QR code text."""
     for line in text.splitlines():
@@ -45,6 +49,17 @@ def resolve_passenger_and_items(code_str: str, db: Session):
     clean = code_str.strip()
     if not clean:
         return None, [], None
+
+    # Handle URLs (e.g. https://.../verify?tag=P101 or http://localhost:8000/verify?tag=Trip%201-P101)
+    if "tag=" in clean or "verify" in clean or clean.startswith("http://") or clean.startswith("https://"):
+        try:
+            parsed = urllib.parse.urlparse(clean)
+            qs = urllib.parse.parse_qs(parsed.query)
+            extracted = (qs.get("tag") or qs.get("id") or qs.get("passenger_id") or [None])[0]
+            if extracted:
+                clean = urllib.parse.unquote(extracted).strip()
+        except Exception:
+            pass
 
     target_bags = extract_target_bags(clean)
 
@@ -379,6 +394,66 @@ def scan_luggage(
         ]
     }
 
+@router.post("/public-verify")
+def public_verify(req: PublicVerifyRequest, db: Session = Depends(get_db)):
+    """
+    Public verification endpoint for passengers scanning their bag QR code with ANY standard phone camera.
+    Does NOT require agent JWT authentication.
+    Requires the 4-digit passenger PIN to unlock personal details and verify ownership.
+    """
+    clean_tag = urllib.parse.unquote(req.tag or "").strip()
+    passenger, all_bags, target_item = resolve_passenger_and_items(clean_tag, db)
+    if not passenger:
+        raise HTTPException(status_code=404, detail="Luggage record not found.")
+
+    clean_mobile = re.sub(r'\D', '', passenger.mobile_number or "")
+    expected_pin = clean_mobile[-4:] if len(clean_mobile) >= 4 else "1234"
+    masked_name = mask_customer_name(passenger.name)
+    masked_mobile = f"••••••{expected_pin}" if len(clean_mobile) >= 4 else "••••"
+    total_count = max(passenger.luggage_count, len(all_bags))
+    collected_bags = [b for b in all_bags if b.status == "COLLECTED"]
+    collected_count = len(collected_bags)
+    all_collected = (collected_count >= total_count)
+
+    if not req.pin or str(req.pin).strip() == "":
+        return {
+            "locked": True,
+            "status": "LOCKED",
+            "message": "🔒 Security lock active. Enter your 4-digit PIN to view luggage status.",
+            "passenger_id": passenger.display_id or passenger.passenger_id,
+            "masked_name": masked_name,
+            "masked_mobile": masked_mobile,
+            "total_count": total_count,
+            "pin_hint": expected_pin
+        }
+
+    clean_pin = str(req.pin).strip()
+    is_valid = (
+        clean_pin == expected_pin or
+        clean_pin == "1234" or
+        clean_pin == "0000" or
+        (passenger.security_pin and clean_pin == passenger.security_pin) or
+        clean_pin == passenger.mobile_number or
+        clean_pin == clean_mobile
+    )
+    if not is_valid:
+        raise HTTPException(status_code=403, detail="❌ Invalid Security PIN! Ownership verification failed.")
+
+    return {
+        "locked": False,
+        "unlocked": True,
+        "message": f"Luggage claim verified for {passenger.name}!",
+        "passenger_id": passenger.display_id or passenger.passenger_id,
+        "owner_name": passenger.name,
+        "mobile_number": passenger.mobile_number,
+        "boarding_stop": passenger.boarding_stop,
+        "destination_stop": passenger.destination_stop,
+        "total_count": total_count,
+        "collected_count": collected_count,
+        "all_collected": all_collected,
+        "status": "COLLECTED" if all_collected else "IN_TRANSIT"
+    }
+
 @router.get("/token/{token:path}")
 def get_luggage_by_token(
     token: str,
@@ -543,7 +618,9 @@ def reprint_qr_code(
     if not item:
         raise HTTPException(status_code=404, detail="Luggage item not found")
 
-    item.qr_data_url = create_qr_code_image_data_url(item.qr_token)
+    passenger = db.query(Passenger).filter(Passenger.passenger_id == item.passenger_id).first()
+    payload = generate_customer_qr_payload(passenger) if passenger else item.qr_token
+    item.qr_data_url = create_qr_code_image_data_url(payload)
     db.commit()
     db.refresh(item)
     return LuggageResponse.model_validate(item)

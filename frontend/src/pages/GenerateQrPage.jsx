@@ -470,7 +470,7 @@ export default function GenerateQrPage({ selectedTrip = 'Trip 1', setSelectedTri
 
       {/* POP-UP MODAL: 1 SINGLE QR CODE FOR THE CUSTOMER */}
       {showQrPopup && popupPassenger && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn no-print">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 animate-fadeIn no-print">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}

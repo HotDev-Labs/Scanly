@@ -1021,7 +1021,7 @@ export default function ImportPage({ selectedTrip = 'Trip 1', setSelectedTrip, s
 
       {/* EDIT PASSENGER MODAL (EDIT NAME, MOBILE, PLACES, LUGGAGE) */}
       {editingMember && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn no-print">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 animate-fadeIn no-print">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
             
             {/* Modal Header */}

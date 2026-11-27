@@ -354,7 +354,7 @@ export default function ScanQrPage() {
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
           <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-700"></span>
             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
               Live Camera Scanner
             </h2>
@@ -398,9 +398,9 @@ export default function ScanQrPage() {
 
         {/* Live scanner prompt for upcoming bags (Asks for Bag 2, then Bag 3) */}
         {scannedData && !scannedData.locked && !scannedData.all_collected && (
-          <div className="p-3.5 bg-amber-50 border-2 border-amber-400 rounded-xl text-center text-xs text-amber-950 font-black flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs animate-pulse">
+          <div className="p-3.5 bg-amber-50 border-2 border-amber-600 rounded-xl text-center text-xs text-amber-950 font-black flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs">
             <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-700"></span>
               <span className="uppercase tracking-wide font-black">NEXT STEP:</span>
             </div>
             <span>
@@ -447,7 +447,7 @@ export default function ScanQrPage() {
 
       {/* 🔒 STATE A: LUGGAGE IS LOCKED (PIN REQUIRED TO PULL DETAILS) */}
       {scannedData && scannedData.locked && (
-        <div className="bg-white p-5 rounded-2xl border-2 border-amber-400 shadow-md space-y-4 animate-fadeIn">
+        <div className="bg-white p-5 rounded-2xl border-2 border-amber-600 shadow-xs space-y-4 animate-fadeIn">
           
           {/* Header */}
           <div className="flex items-center justify-between pb-3 border-b border-amber-100">
@@ -585,7 +585,7 @@ export default function ScanQrPage() {
 
           {/* Multi-Bag Step-by-Step Prompt Banner (Asks for Bag 2, then Bag 3) */}
           {scannedData.total_count > 1 && !scannedData.all_collected ? (
-            <div className="p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl text-amber-950 space-y-2 shadow-xs">
+            <div className="p-4 bg-amber-50 border-2 border-amber-600 rounded-2xl text-amber-950 space-y-2 shadow-xs">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center space-x-2">
                   <span className="px-2.5 py-1 rounded-lg bg-amber-800 text-white font-mono font-black text-xs">
@@ -609,7 +609,7 @@ export default function ScanQrPage() {
               </p>
             </div>
           ) : scannedData.all_collected && (
-            <div className="p-4 bg-emerald-50 border-2 border-emerald-400 text-emerald-950 rounded-2xl shadow-xs space-y-1 text-center">
+            <div className="p-4 bg-emerald-50 border-2 border-emerald-600 text-emerald-950 rounded-2xl shadow-xs space-y-1 text-center">
               <div className="text-base sm:text-lg font-black flex items-center justify-center space-x-2">
                 <CheckCircle2 className="w-6 h-6 text-emerald-700" />
                 <span>ALL {scannedData.total_count} OF {scannedData.total_count} BAGS VERIFIED &amp; HANDED OVER!</span>
@@ -693,7 +693,7 @@ export default function ScanQrPage() {
                         isVerified
                           ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
                           : isCurrentTarget
-                            ? 'bg-amber-50 border-2 border-amber-400 text-amber-950 font-black shadow-xs ring-2 ring-amber-300/40 animate-pulse'
+                            ? 'bg-amber-50 border-2 border-amber-600 text-amber-950 font-black shadow-xs'
                             : 'bg-slate-50 border-slate-200 text-slate-500'
                       }`}
                     >

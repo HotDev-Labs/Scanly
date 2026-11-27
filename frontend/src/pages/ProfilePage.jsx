@@ -169,8 +169,8 @@ export default function ProfilePage({
 
       {/* Main Profile Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        {/* Banner */}
-        <div className="h-24 bg-gradient-to-r from-blue-800 via-blue-700 to-indigo-800 relative px-6">
+        {/* Banner in Solid Blue */}
+        <div className="h-24 bg-blue-800 relative px-6">
           <div className="absolute -bottom-10 left-6 flex items-end space-x-4">
             <div className="relative">
               {currentUser?.avatar_url ? (
@@ -457,8 +457,8 @@ export default function ProfilePage({
                   key={trip}
                   className={`p-3 rounded-xl border transition-all flex items-center justify-between ${
                     isActive
-                      ? 'bg-blue-50/80 border-blue-500 shadow-2xs ring-1 ring-blue-400'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                      ? 'bg-blue-50 border-2 border-blue-800 shadow-2xs'
+                      : 'bg-slate-50 border border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-2.5 min-w-0">

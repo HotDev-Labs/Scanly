@@ -79,7 +79,7 @@ export default function App() {
   if (authChecking) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <ScanlyLogo className="w-12 h-12 mb-3 shadow-md rounded-2xl animate-pulse" />
+        <ScanlyLogo className="w-12 h-12 mb-3 shadow-sm rounded-2xl" />
         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
           <RefreshCw className="w-3.5 h-3.5 text-blue-800 animate-spin" />
           <span>Loading Scanly...</span>

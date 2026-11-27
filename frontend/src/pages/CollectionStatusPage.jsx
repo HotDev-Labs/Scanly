@@ -578,7 +578,7 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
 
       {/* EDIT PASSENGER & LUGGAGE MODAL */}
       {editingPassenger && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn no-print">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 animate-fadeIn no-print">
           <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
@@ -705,7 +705,7 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
 
       {/* QR PREVIEW MODAL */}
       {selectedQrPreview && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn no-print">
+        <div className="fixed inset-0 z-50 bg-slate-900/80 flex items-center justify-center p-4 animate-fadeIn no-print">
           <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 text-center space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <span className="font-mono font-bold text-sm text-slate-900">

@@ -40,7 +40,7 @@ export default function BottomNav({ activeTab, setActiveTab }) {
               className="flex flex-col items-center justify-center -mt-4 cursor-pointer"
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-95 ${
-                isActive ? 'bg-blue-900 ring-4 ring-blue-200 text-white' : 'bg-blue-800 text-white'
+                isActive ? 'bg-blue-900 border-2 border-white text-white' : 'bg-blue-800 text-white'
               }`}>
                 <Icon className="w-6 h-6" />
               </div>

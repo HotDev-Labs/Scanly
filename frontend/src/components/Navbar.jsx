@@ -115,7 +115,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                     <img 
                       src={currentUser.avatar_url} 
                       alt="Avatar" 
-                      className="w-5 h-5 rounded-full object-cover border border-blue-400 shrink-0" 
+                      className="w-5 h-5 rounded-full object-cover border border-blue-700 shrink-0" 
                     />
                   ) : (
                     <div className="w-5 h-5 rounded-full bg-blue-700 flex items-center justify-center text-[11px] font-bold text-white uppercase shrink-0">

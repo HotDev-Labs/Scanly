@@ -279,8 +279,8 @@ export default function GenerateQrPage({ selectedTrip = 'Trip 1', setSelectedTri
         
         {availablePassengers.length === 0 && !loadingPassengers ? (
           <div className="py-8 text-center space-y-2">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-6 h-6" />
+            <div className="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto border border-slate-300">
+              <CheckCircle2 className="w-6 h-6 text-blue-800" />
             </div>
             <h3 className="text-sm font-bold text-slate-900">All Passengers Have QR Codes Created</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -291,7 +291,7 @@ export default function GenerateQrPage({ selectedTrip = 'Trip 1', setSelectedTri
                 <button
                   type="button"
                   onClick={onNavigateToScan}
-                  className="px-4 py-2.5 bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs hover:bg-emerald-800 inline-flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-2.5 bg-blue-800 text-white rounded-xl font-bold text-xs shadow-xs hover:bg-blue-900 inline-flex items-center space-x-1.5 cursor-pointer"
                 >
                   <ScanLine className="w-4 h-4" />
                   <span>Go to Scanner &amp; Verify Handover</span>
@@ -521,7 +521,7 @@ export default function GenerateQrPage({ selectedTrip = 'Trip 1', setSelectedTri
                   <span className="inline-block px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full font-bold text-xs">
                     {popupPassenger.luggage_count} Baggage Tag(s)
                   </span>
-                  <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-300 text-amber-900 rounded-full font-bold text-xs">
+                  <span className="inline-block px-3 py-1 bg-slate-800 text-white rounded-full font-bold text-xs">
                     🔒 PIN: Last 4 digits ({String(popupPassenger.mobile_number).slice(-4)})
                   </span>
                 </div>

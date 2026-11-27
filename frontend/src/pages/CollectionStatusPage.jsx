@@ -287,27 +287,27 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
   return (
     <div className="space-y-4 pb-20 max-w-5xl mx-auto">
 
-      {/* KPI Stats Row in Clean Solid Tones */}
+      {/* KPI Stats Row in Clean Solid Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Bags</span>
           <span className="text-xl font-extrabold text-slate-900 mt-0.5 block">{totalBagsCount}</span>
           <span className="text-[10px] text-slate-400 mt-0.5 block">{filtered.length} Passengers</span>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-amber-200 bg-amber-50/40 shadow-2xs">
-          <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Pending</span>
-          <span className="text-xl font-extrabold text-amber-800 mt-0.5 block">{pendingBagsCount}</span>
-          <span className="text-[10px] text-amber-700 mt-0.5 block">Awaiting Handover</span>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+          <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Pending</span>
+          <span className="text-xl font-extrabold text-slate-900 mt-0.5 block">{pendingBagsCount}</span>
+          <span className="text-[10px] text-slate-400 mt-0.5 block">Awaiting Handover</span>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-blue-200 bg-blue-50/40 shadow-2xs">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
           <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider block">In Transit</span>
-          <span className="text-xl font-extrabold text-blue-800 mt-0.5 block">{inTransitBagsCount}</span>
-          <span className="text-[10px] text-blue-700 mt-0.5 block">En Route</span>
+          <span className="text-xl font-extrabold text-blue-900 mt-0.5 block">{inTransitBagsCount}</span>
+          <span className="text-[10px] text-slate-400 mt-0.5 block">En Route</span>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40 shadow-2xs">
-          <span className="text-[10px] font-bold text-emerald-900 uppercase tracking-wider block">Collected</span>
-          <span className="text-xl font-extrabold text-emerald-800 mt-0.5 block">{collectedBagsCount}</span>
-          <span className="text-[10px] text-emerald-700 mt-0.5 block">Handover Completed</span>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+          <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider block">Collected</span>
+          <span className="text-xl font-extrabold text-slate-900 mt-0.5 block">{collectedBagsCount}</span>
+          <span className="text-[10px] text-slate-400 mt-0.5 block">Handover Completed</span>
         </div>
       </div>
 
@@ -444,14 +444,14 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
                         </span>
 
                         {/* Status Badge */}
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                           isAllDone
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            ? 'bg-slate-900 text-white'
                             : g.collected_count > 0
-                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              ? 'bg-blue-800 text-white'
                               : g.status === 'IN_TRANSIT'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-slate-100 text-slate-800 border border-slate-300'
                         }`}>
                           {isAllDone
                             ? `Collected (${g.total_bags}/${g.total_bags})`
@@ -494,12 +494,12 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
                               key={item.id || idx}
                               className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md font-mono text-[10px] font-bold border ${
                                 isItemDone
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                  : 'bg-slate-50 text-slate-600 border-slate-200'
+                                  ? 'bg-slate-900 text-white border-slate-900'
+                                  : 'bg-white text-slate-700 border-slate-300'
                               }`}
                             >
                               {isItemDone ? (
-                                <Check className="w-3 h-3 text-emerald-700" />
+                                <Check className="w-3 h-3 text-white" />
                               ) : (
                                 <Luggage className="w-3 h-3 text-slate-400" />
                               )}
@@ -518,18 +518,18 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
                     {!isAllDone && g.status !== 'IN_TRANSIT' ? (
                       <button
                         onClick={() => handleMarkPassengerInTransit(g.passenger_id)}
-                        className="h-8 px-2.5 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center shadow-2xs"
+                        className="h-8 px-2.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center shadow-2xs"
                         title="Mark all bags for this passenger as In Transit"
                       >
                         In Transit
                       </button>
                     ) : g.status === 'IN_TRANSIT' && !isAllDone ? (
-                      <span className="h-8 px-2.5 text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 rounded-lg flex items-center whitespace-nowrap shadow-2xs">
+                      <span className="h-8 px-2.5 text-xs font-bold bg-slate-800 text-white rounded-lg flex items-center whitespace-nowrap shadow-2xs">
                         In Transit
                       </span>
                     ) : (
-                      <span className="h-8 px-2.5 text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg flex items-center whitespace-nowrap shadow-2xs">
-                        <Check className="w-3.5 h-3.5 mr-1 text-emerald-700" />
+                      <span className="h-8 px-2.5 text-xs font-bold bg-slate-900 text-white rounded-lg flex items-center whitespace-nowrap shadow-2xs">
+                        <Check className="w-3.5 h-3.5 mr-1 text-white" />
                         Collected
                       </span>
                     )}
@@ -540,7 +540,7 @@ export default function CollectionStatusPage({ selectedTrip = 'Trip 1', setSelec
                       className={`h-8 flex items-center px-3 text-xs font-bold rounded-lg transition-colors shadow-2xs cursor-pointer whitespace-nowrap ${
                         isAllDone
                           ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
-                          : 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                          : 'bg-blue-800 hover:bg-blue-900 text-white'
                       }`}
                       title={isAllDone ? 'Re-scan / verify handover' : 'Scan passenger QR code'}
                     >

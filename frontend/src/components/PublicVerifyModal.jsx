@@ -87,22 +87,22 @@ export default function PublicVerifyModal({ tag, onSwitchToAgent }) {
           {/* STATE 1: LOCKED (NEEDS PIN) */}
           {!loading && data && data.locked && (
             <div className="space-y-4">
-              <div className="p-4 bg-amber-50 border-2 border-amber-600 rounded-2xl space-y-3">
+              <div className="p-4 bg-white border-2 border-slate-800 rounded-2xl space-y-3 shadow-xs">
                 <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-amber-100 text-amber-900 rounded-xl border border-amber-300">
-                    <Lock className="w-5 h-5 text-amber-800" />
+                  <div className="p-2 bg-slate-100 text-slate-800 rounded-xl border border-slate-300">
+                    <Lock className="w-5 h-5 text-blue-900" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-black text-amber-950 uppercase tracking-wide">
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wide">
                       Luggage Tag Protected • Identity Verification Required
                     </h3>
-                    <p className="text-[11px] text-amber-800">
+                    <p className="text-[11px] text-slate-500">
                       Personal details are hidden. Enter your 4-digit PIN to claim.
                     </p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-amber-200/80 grid grid-cols-2 gap-2 text-xs">
+                <div className="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 block">Passenger ID</span>
                     <span className="font-mono font-black text-blue-900 text-sm">{data.passenger_id}</span>
@@ -158,12 +158,12 @@ export default function PublicVerifyModal({ tag, onSwitchToAgent }) {
           {/* STATE 2: UNLOCKED & DETAILS PULLED */}
           {!loading && data && !data.locked && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-950 text-xs flex items-center justify-between">
+              <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs flex items-center justify-between shadow-xs">
                 <div className="flex items-center space-x-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+                  <ShieldCheck className="w-4 h-4 text-blue-400 flex-shrink-0" />
                   <span className="font-bold">Ownership Verified Successfully!</span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-700 text-white font-mono text-[10px] font-black uppercase">
+                <span className="px-2 py-0.5 rounded bg-blue-800 text-white font-mono text-[10px] font-black uppercase">
                   {data.status}
                 </span>
               </div>

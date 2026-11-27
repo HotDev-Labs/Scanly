@@ -161,8 +161,8 @@ export default function ProfilePage({
           <span>Back to Dashboard</span>
         </button>
 
-        <div className="flex items-center space-x-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-[11px] font-bold">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="flex items-center space-x-1 px-2.5 py-1 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg text-[11px] font-bold">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-800" />
           <span>Verified Agent</span>
         </div>
       </div>
@@ -278,13 +278,13 @@ export default function ProfilePage({
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3.5">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center space-x-2">
-            <div className="p-2 bg-amber-100 text-amber-900 rounded-xl border border-amber-300">
-              <KeyRound className="w-4 h-4 text-amber-800" />
+            <div className="p-2 bg-slate-100 text-slate-800 rounded-xl border border-slate-300">
+              <KeyRound className="w-4 h-4 text-blue-900" />
             </div>
             <div>
               <h2 className="text-sm font-black text-slate-900 tracking-tight flex items-center space-x-1.5">
                 <span>Transit Security PIN</span>
-                <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.2 rounded font-bold uppercase">
+                <span className="text-[10px] bg-slate-800 text-white px-2 py-0.5 rounded font-bold uppercase">
                   ANTI-THEFT LOCK
                 </span>
               </h2>
@@ -301,7 +301,7 @@ export default function ProfilePage({
                 setPinInput(currentUser?.security_pin || '1234');
                 setPinError('');
               }}
-              className="flex items-center space-x-1 text-xs font-bold text-blue-800 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 cursor-pointer transition-colors"
+              className="flex items-center space-x-1 text-xs font-bold text-white bg-blue-800 hover:bg-blue-900 px-3 py-1.5 rounded-xl border border-blue-900 cursor-pointer transition-colors shadow-2xs"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Change PIN</span>
@@ -310,14 +310,14 @@ export default function ProfilePage({
         </div>
 
         {pinSaveSuccess && (
-          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center space-x-1.5 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-900 text-xs font-semibold flex items-center space-x-1.5 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-blue-800 flex-shrink-0" />
             <span>Security PIN updated successfully!</span>
           </div>
         )}
 
         {pinError && (
-          <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center space-x-1.5 animate-fadeIn">
+          <div className="p-2.5 bg-slate-100 border border-slate-300 text-slate-900 text-xs rounded-xl flex items-center space-x-1.5 animate-fadeIn">
             <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span className="font-semibold">{pinError}</span>
           </div>
@@ -387,7 +387,7 @@ export default function ProfilePage({
               </button>
             </div>
 
-            <span className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-lg">
+            <span className="text-[11px] text-slate-800 bg-slate-100 border border-slate-300 font-bold px-2 py-0.5 rounded-lg">
               Active Protection
             </span>
           </div>
@@ -509,32 +509,32 @@ export default function ProfilePage({
         <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab('generate-qr')}
-            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-900 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
           >
-            <QrCode className="w-3.5 h-3.5 text-blue-700" />
+            <QrCode className="w-3.5 h-3.5 text-blue-800" />
             <span>Generate QR</span>
           </button>
           <button
             onClick={() => setActiveTab('scan-verify')}
-            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-900 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
           >
-            <ScanLine className="w-3.5 h-3.5 text-emerald-700" />
+            <ScanLine className="w-3.5 h-3.5 text-blue-800" />
             <span>Scan & Verify</span>
           </button>
           <button
             onClick={() => setActiveTab('collection-status')}
-            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-900 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+            className="flex-1 min-w-[120px] p-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl border border-slate-200 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
           >
-            <PackageCheck className="w-3.5 h-3.5 text-indigo-700" />
+            <PackageCheck className="w-3.5 h-3.5 text-blue-800" />
             <span>Luggage Tracking</span>
           </button>
         </div>
       </div>
 
-      {/* Logout Option Card */}
-      <div className="bg-white rounded-2xl border border-rose-200 shadow-xs p-5 space-y-3">
+      {/* Logout Option Card in Solid Clean Slate */}
+      <div className="bg-white rounded-2xl border border-slate-300 shadow-xs p-5 space-y-3">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 bg-rose-100 text-rose-700 rounded-lg">
+          <div className="p-1.5 bg-slate-100 text-slate-800 rounded-lg border border-slate-200">
             <LogOut className="w-4 h-4" />
           </div>
           <div>
@@ -545,9 +545,9 @@ export default function ProfilePage({
 
         <button
           onClick={onLogout}
-          className="w-full py-2.5 px-4 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-800 font-bold text-xs rounded-xl border border-rose-300 transition-colors cursor-pointer flex items-center justify-center space-x-2 shadow-2xs"
+          className="w-full py-2.5 px-4 bg-slate-900 hover:bg-black active:scale-[0.99] text-white font-bold text-xs rounded-xl border border-slate-900 transition-colors cursor-pointer flex items-center justify-center space-x-2 shadow-xs"
         >
-          <LogOut className="w-4 h-4 text-rose-700" />
+          <LogOut className="w-4 h-4 text-white" />
           <span>Logout ({displayName})</span>
         </button>
       </div>

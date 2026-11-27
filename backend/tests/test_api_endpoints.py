@@ -222,7 +222,7 @@ def test_security_lock_and_pin_verification(test_db):
     p = create_passenger(p_in, db, current_user=admin)
     generate_qr_for_passenger(p.passenger_id, db, current_user=admin)
 
-    qr_text = f"🔒 SCANLY PROTECTED LUGGAGE\nTag: {p.passenger_id}\nPassenger ID: {p.passenger_id}"
+    qr_text = f"https://scanly-henna.vercel.app/verify?tag={p.passenger_id}"
 
     # Step 1: Scan with require_pin=True and no PIN -> Should be locked
     res_locked = scan_luggage(ScanRequest(code=qr_text, auto_collect=False, require_pin=True), db, current_user=admin)

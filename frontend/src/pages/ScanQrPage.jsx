@@ -302,18 +302,16 @@ export default function ScanQrPage() {
     <div className="space-y-4 max-w-2xl mx-auto pb-20">
 
       {/* SECURITY LOCK MODE CONTROLLER BAR */}
-      <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+      <div className="p-3 bg-white border border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         <div className="flex items-center space-x-2.5">
-          <div className={`p-2 rounded-xl flex items-center justify-center ${
-            securityLockEnabled ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-slate-100 text-slate-700'
-          }`}>
-            {securityLockEnabled ? <Lock className="w-4 h-4 text-amber-800" /> : <Unlock className="w-4 h-4 text-slate-600" />}
+          <div className="p-2 rounded-xl flex items-center justify-center bg-slate-100 text-slate-800 border border-slate-300">
+            {securityLockEnabled ? <Lock className="w-4 h-4 text-blue-900" /> : <Unlock className="w-4 h-4 text-slate-600" />}
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
               <span className="text-xs font-black text-slate-900">Anti-Theft Security Lock</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold uppercase ${
-                securityLockEnabled ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-slate-100 text-slate-600'
+                securityLockEnabled ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-700'
               }`}>
                 {securityLockEnabled ? 'PROTECTED (PIN REQUIRED)' : 'EXPRESS MODE'}
               </span>
@@ -335,7 +333,7 @@ export default function ScanQrPage() {
           }}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
             securityLockEnabled
-              ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-700 shadow-2xs'
+              ? 'bg-slate-900 hover:bg-black text-white border-slate-900 shadow-2xs'
               : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
           }`}
         >
@@ -391,17 +389,17 @@ export default function ScanQrPage() {
         </div>
 
         {cameraError && (
-          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl">
+          <div className="p-3 bg-slate-100 border border-slate-300 text-slate-800 text-xs rounded-xl font-medium">
             {cameraError}
           </div>
         )}
 
         {/* Live scanner prompt for upcoming bags (Asks for Bag 2, then Bag 3) */}
         {scannedData && !scannedData.locked && !scannedData.all_collected && (
-          <div className="p-3.5 bg-amber-50 border-2 border-amber-600 rounded-xl text-center text-xs text-amber-950 font-black flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs">
+          <div className="p-3.5 bg-white border-2 border-blue-800 rounded-xl text-center text-xs text-slate-900 font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs">
             <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-700"></span>
-              <span className="uppercase tracking-wide font-black">NEXT STEP:</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-800"></span>
+              <span className="uppercase tracking-wide font-black text-blue-900">NEXT STEP:</span>
             </div>
             <span>
               Please scan <strong>Bag {scannedData.collected_count + 1} of {scannedData.total_count}</strong> for {scannedData.owner_name}
@@ -447,24 +445,24 @@ export default function ScanQrPage() {
 
       {/* 🔒 STATE A: LUGGAGE IS LOCKED (PIN REQUIRED TO PULL DETAILS) */}
       {scannedData && scannedData.locked && (
-        <div className="bg-white p-5 rounded-2xl border-2 border-amber-600 shadow-xs space-y-4 animate-fadeIn">
+        <div className="bg-white p-5 rounded-2xl border-2 border-slate-800 shadow-xs space-y-4 animate-fadeIn">
           
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center space-x-2">
-              <span className="p-2 bg-amber-100 text-amber-900 rounded-xl border border-amber-300">
-                <Lock className="w-5 h-5 text-amber-800" />
+              <span className="p-2 bg-slate-100 text-slate-800 rounded-xl border border-slate-300">
+                <Lock className="w-5 h-5 text-blue-900" />
               </span>
               <div>
-                <h3 className="text-sm font-black text-amber-950 uppercase tracking-wide">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">
                   Luggage Tag Locked • Identity Verification Required
                 </h3>
-                <p className="text-[11px] text-amber-800">
+                <p className="text-[11px] text-slate-500">
                   Tag identified. Customer details are masked to protect passenger privacy.
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-lg uppercase">
+            <span className="px-2.5 py-1 bg-slate-900 text-white text-[10px] font-black rounded-lg uppercase">
               STATUS: LOCKED
             </span>
           </div>
@@ -549,7 +547,7 @@ export default function ScanQrPage() {
                 type="button"
                 onClick={handlePullAndPushHandover}
                 disabled={loadingDetails}
-                className="flex-1 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex-1 py-2.5 px-4 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Quick Pull Details &amp; Push Handover &rarr;</span>
@@ -573,22 +571,22 @@ export default function ScanQrPage() {
         <div className="space-y-3 animate-fadeIn">
           
           {/* Security Verified Banner */}
-          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-950 text-xs flex items-center justify-between">
+          <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs flex items-center justify-between shadow-xs">
             <div className="flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-blue-400 flex-shrink-0" />
               <span className="font-bold">Passenger Identity Verified • Full Customer Details Pulled</span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-emerald-700 text-white font-mono text-[10px] font-black">
+            <span className="px-2 py-0.5 rounded bg-blue-800 text-white font-mono text-[10px] font-black">
               VERIFIED
             </span>
           </div>
 
           {/* Multi-Bag Step-by-Step Prompt Banner (Asks for Bag 2, then Bag 3) */}
           {scannedData.total_count > 1 && !scannedData.all_collected ? (
-            <div className="p-4 bg-amber-50 border-2 border-amber-600 rounded-2xl text-amber-950 space-y-2 shadow-xs">
+            <div className="p-4 bg-white border-2 border-blue-800 rounded-2xl text-slate-900 space-y-2 shadow-xs">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="flex items-center space-x-2">
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-800 text-white font-mono font-black text-xs">
+                  <span className="px-2.5 py-1 rounded-lg bg-blue-800 text-white font-mono font-black text-xs">
                     STEP {scannedData.collected_count + 1} OF {scannedData.total_count}
                   </span>
                   <span className="font-black text-sm sm:text-base">
@@ -598,23 +596,23 @@ export default function ScanQrPage() {
                 <button
                   type="button"
                   onClick={handlePushHandoverCurrentBag}
-                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center space-x-1"
+                  className="px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center space-x-1"
                 >
                   <UploadCloud className="w-3.5 h-3.5" />
                   <span>Push Handover (Bag {scannedData.collected_count + 1}) &rarr;</span>
                 </button>
               </div>
-              <p className="text-xs text-amber-900 font-medium">
+              <p className="text-xs text-slate-600 font-medium">
                 Customer identity confirmed. Click <strong>"Push Handover"</strong> to confirm handover of Bag {scannedData.collected_count + 1} of {scannedData.total_count}.
               </p>
             </div>
           ) : scannedData.all_collected && (
-            <div className="p-4 bg-emerald-50 border-2 border-emerald-600 text-emerald-950 rounded-2xl shadow-xs space-y-1 text-center">
+            <div className="p-4 bg-white border-2 border-slate-900 text-slate-900 rounded-2xl shadow-xs space-y-1 text-center">
               <div className="text-base sm:text-lg font-black flex items-center justify-center space-x-2">
-                <CheckCircle2 className="w-6 h-6 text-emerald-700" />
+                <CheckCircle2 className="w-6 h-6 text-blue-800" />
                 <span>ALL {scannedData.total_count} OF {scannedData.total_count} BAGS VERIFIED &amp; HANDED OVER!</span>
               </div>
-              <p className="text-xs text-emerald-800 font-semibold">
+              <p className="text-xs text-slate-600 font-semibold">
                 Every luggage tag for <strong>{scannedData.owner_name}</strong> has been successfully verified.
               </p>
             </div>
@@ -691,10 +689,10 @@ export default function ScanQrPage() {
                       key={bagNum}
                       className={`p-3 rounded-xl border text-xs flex flex-col justify-between transition-all ${
                         isVerified
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                          ? 'bg-white border-2 border-slate-800 text-slate-900 font-bold'
                           : isCurrentTarget
-                            ? 'bg-amber-50 border-2 border-amber-600 text-amber-950 font-black shadow-xs'
-                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                            ? 'bg-slate-50 border-2 border-blue-800 text-slate-900 font-black shadow-xs'
+                            : 'bg-slate-50 border border-slate-200 text-slate-500'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -702,11 +700,11 @@ export default function ScanQrPage() {
                           Bag {bagNum} of {scannedData.total_count}
                         </span>
                         {isVerified ? (
-                          <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                          <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center">
                             <Check className="w-3.5 h-3.5" />
                           </span>
                         ) : isCurrentTarget ? (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-600 text-white font-mono text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-blue-800 text-white font-mono text-[10px]">
                             SCAN NOW
                           </span>
                         ) : (
@@ -716,9 +714,9 @@ export default function ScanQrPage() {
 
                       <div className="text-[11px] font-semibold">
                         {isVerified ? (
-                          <span className="text-emerald-800">Verified &amp; Handed Over</span>
+                          <span className="text-slate-900 font-bold">Verified &amp; Handed Over</span>
                         ) : isCurrentTarget ? (
-                          <span className="text-amber-900 font-bold">👉 Present Tag {bagNum}</span>
+                          <span className="text-blue-900 font-bold">👉 Present Tag {bagNum}</span>
                         ) : (
                           <span className="text-slate-400">Waiting for Step {bagNum - 1}</span>
                         )}
@@ -735,7 +733,7 @@ export default function ScanQrPage() {
                 <button
                   type="button"
                   onClick={handlePushHandoverCurrentBag}
-                  className="flex-1 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+                  className="flex-1 py-3 px-4 bg-blue-800 hover:bg-blue-900 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
                 >
                   <UploadCloud className="w-4 h-4" />
                   <span>Push / Confirm Handover (Bag {scannedData.collected_count + 1} of {scannedData.total_count})</span>
@@ -745,9 +743,9 @@ export default function ScanQrPage() {
                   type="button"
                   onClick={handleMarkAllHandedOver}
                   disabled={markingHandover}
-                  className="py-3 px-4 border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 cursor-pointer"
+                  className="py-3 px-4 border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-2xs"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                  <CheckCircle2 className="w-4 h-4 text-blue-800" />
                   <span>Mark All Remaining ({scannedData.total_count - scannedData.collected_count}) Handed Over</span>
                 </button>
               </div>

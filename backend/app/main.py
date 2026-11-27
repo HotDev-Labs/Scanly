@@ -55,6 +55,20 @@ def init_db():
             seed_default_users(db)
         finally:
             db.close()
+
+        # Ensure all luggage records encode the secure verification URL (never plain text)
+        try:
+            from .models import Passenger
+            from .services.qr_service import ensure_luggage_for_passenger
+            db = SessionLocal()
+            try:
+                passengers = db.query(Passenger).all()
+                for p in passengers:
+                    ensure_luggage_for_passenger(db, p)
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"[Scanly QR Migration Warning]: {e}")
             
         _db_initialized = True
     except Exception as e:

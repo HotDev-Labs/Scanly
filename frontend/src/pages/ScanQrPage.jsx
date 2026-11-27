@@ -14,7 +14,17 @@ import {
   RotateCcw, 
   Check, 
   ArrowRight,
-  Volume2
+  Volume2,
+  Lock,
+  Unlock,
+  ShieldCheck,
+  ShieldAlert,
+  KeyRound,
+  Sparkles,
+  Download,
+  UploadCloud,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function ScanQrPage() {
@@ -23,6 +33,12 @@ export default function ScanQrPage() {
   const [manualInput, setManualInput] = useState('');
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [markingHandover, setMarkingHandover] = useState(false);
+
+  // Security Lock Feature (Default is ON for high anti-theft privacy protection)
+  const [securityLockEnabled, setSecurityLockEnabled] = useState(true);
+  const [currentScannedCode, setCurrentScannedCode] = useState('');
+  const [enteredPin, setEnteredPin] = useState('');
+  const [pinError, setPinError] = useState('');
 
   // Scanned Customer & Luggage details
   const [scannedData, setScannedData] = useState(null);
@@ -111,13 +127,49 @@ export default function ScanQrPage() {
     }
   };
 
-  // Process scanned QR code:
-  // For one customer with multiple bags, automatically collects the next bag in sequence!
-  const handleProcessScannedCode = async (tokenOrCode) => {
-    const clean = tokenOrCode.trim();
+  const playChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    } catch (e) {
+      // Audio optional
+    }
+  };
+
+  const playLockedTone = () => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } catch (e) {}
+  };
+
+  // Process scanned QR code or tag ID:
+  // - If securityLockEnabled = true and no PIN supplied, locks view and asks for passenger PIN.
+  // - If PIN supplied, validates PIN and pulls full customer details.
+  // - forceAutoCollect lets operator "Push Handover" for the next bag.
+  const handleProcessScannedCode = async (tokenOrCode, pinToVerify = null, forceAutoCollect = null) => {
+    const clean = (tokenOrCode || currentScannedCode).trim();
     if (!clean) return;
 
-    // Set 1.2s cooldown to give operator time to present the next bag
+    setCurrentScannedCode(clean);
+
+    // Set 1.2s cooldown to give operator time
     cooldownRef.current = true;
     setScanCooldown(true);
     setTimeout(() => {
@@ -127,37 +179,75 @@ export default function ScanQrPage() {
 
     setLoadingDetails(true);
     setErrorMessage('');
+    setPinError('');
 
     try {
       if (window.navigator?.vibrate) {
         window.navigator.vibrate(80);
       }
 
-      // Call backend scan endpoint with auto_collect=true
-      const result = await api.scanLuggage(clean, true);
+      // If security lock is enabled:
+      // Without PIN -> do NOT auto-collect, require PIN to lock details
+      // With PIN -> forceAutoCollect dictates whether to auto_collect or just pull details
+      const shouldAutoCollect = forceAutoCollect !== null 
+        ? forceAutoCollect 
+        : (!securityLockEnabled);
+
+      const shouldRequirePin = securityLockEnabled;
+
+      const result = await api.scanLuggage(clean, shouldAutoCollect, pinToVerify, shouldRequirePin);
       setScannedData(result);
       setLastMessage(result.message);
 
-      // Play success audio chime
-      playChime();
-
-      // Audio & voice prompt for the next bag
-      if (result.all_collected) {
-        speakPrompt(`All ${result.total_count} bags verified for ${result.owner_name}`);
+      if (result.locked) {
+        playLockedTone();
+        speakPrompt(`Security lock active. Please enter Passenger PIN to pull customer details.`);
       } else {
-        const nextNum = result.collected_count + 1;
-        speakPrompt(`Bag ${result.collected_count} verified. Please scan Bag ${nextNum} of ${result.total_count}`);
+        playChime();
+        if (result.just_collected) {
+          if (result.all_collected) {
+            speakPrompt(`All ${result.total_count} bags verified and handed over for ${result.owner_name}`);
+          } else {
+            const nextNum = result.collected_count + 1;
+            speakPrompt(`Bag ${result.collected_count} verified. Please scan Bag ${nextNum} of ${result.total_count}`);
+          }
+        } else {
+          speakPrompt(`Customer details verified and pulled for ${result.owner_name}`);
+        }
       }
     } catch (err) {
-      setErrorMessage(err.message || `No customer found for scanned QR code.`);
+      if (err.message && err.message.toLowerCase().includes('pin')) {
+        setPinError(err.message);
+      } else {
+        setErrorMessage(err.message || `No customer found for scanned QR code.`);
+      }
     } finally {
       setLoadingDetails(false);
     }
   };
 
-  const handleVerifyNextBag = () => {
+  // Action: Pull Details by submitting PIN
+  const handlePullDetailsWithPin = (e) => {
+    if (e) e.preventDefault();
+    if (!enteredPin.trim()) {
+      setPinError('Please enter the 4-digit passenger PIN (or 1234)');
+      return;
+    }
+    // Pull details without auto-collecting yet so agent can review before push
+    handleProcessScannedCode(currentScannedCode, enteredPin.trim(), false);
+  };
+
+  // Action: Pull & Push Handover in one step with PIN
+  const handlePullAndPushHandover = () => {
+    const pin = enteredPin.trim() || scannedData?.pin_hint || '1234';
+    handleProcessScannedCode(currentScannedCode, pin, true);
+  };
+
+  // Action: Push Handover for current unlocked bag
+  const handlePushHandoverCurrentBag = () => {
     if (!scannedData || scannedData.all_collected) return;
-    handleProcessScannedCode(scannedData.passenger_id);
+    const pin = enteredPin.trim() || scannedData?.pin_hint || '1234';
+    handleProcessScannedCode(scannedData.passenger_id, pin, true);
   };
 
   const handleManualSubmit = (e) => {
@@ -192,25 +282,11 @@ export default function ScanQrPage() {
     }
   };
 
-  const playChime = () => {
-    try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.35);
-    } catch (e) {
-      // Audio optional
-    }
-  };
-
   const handleReset = () => {
     setScannedData(null);
+    setCurrentScannedCode('');
+    setEnteredPin('');
+    setPinError('');
     setLastMessage('');
     setErrorMessage('');
     if (!isScanning) {
@@ -224,6 +300,48 @@ export default function ScanQrPage() {
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto pb-20">
+
+      {/* SECURITY LOCK MODE CONTROLLER BAR */}
+      <div className="p-3 bg-white border border-slate-200 rounded-2xl shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+        <div className="flex items-center space-x-2.5">
+          <div className={`p-2 rounded-xl flex items-center justify-center ${
+            securityLockEnabled ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-slate-100 text-slate-700'
+          }`}>
+            {securityLockEnabled ? <Lock className="w-4 h-4 text-amber-800" /> : <Unlock className="w-4 h-4 text-slate-600" />}
+          </div>
+          <div>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-xs font-black text-slate-900">Anti-Theft Security Lock</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                securityLockEnabled ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {securityLockEnabled ? 'PROTECTED (PIN REQUIRED)' : 'EXPRESS MODE'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              {securityLockEnabled 
+                ? 'Protects passenger privacy; requires 4-digit PIN on mobile to pull customer details.'
+                : 'Auto-collects immediately upon scan without asking for security PIN.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            const nextVal = !securityLockEnabled;
+            setSecurityLockEnabled(nextVal);
+            if (scannedData) handleReset();
+          }}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+            securityLockEnabled
+              ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-700 shadow-2xs'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+          }`}
+        >
+          {securityLockEnabled ? 'Security: ON' : 'Security: OFF'}
+        </button>
+      </div>
 
       {errorMessage && (
         <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center space-x-2 animate-fadeIn">
@@ -279,7 +397,7 @@ export default function ScanQrPage() {
         )}
 
         {/* Live scanner prompt for upcoming bags (Asks for Bag 2, then Bag 3) */}
-        {scannedData && !scannedData.all_collected && (
+        {scannedData && !scannedData.locked && !scannedData.all_collected && (
           <div className="p-3.5 bg-amber-50 border-2 border-amber-400 rounded-xl text-center text-xs text-amber-950 font-black flex flex-col sm:flex-row items-center justify-center gap-1.5 shadow-xs animate-pulse">
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-ping"></span>
@@ -327,10 +445,144 @@ export default function ScanQrPage() {
 
       </div>
 
-      {/* ACTIVE VERIFICATION CARD (Real-time update with each consecutive scan) */}
-      {scannedData && (
+      {/* 🔒 STATE A: LUGGAGE IS LOCKED (PIN REQUIRED TO PULL DETAILS) */}
+      {scannedData && scannedData.locked && (
+        <div className="bg-white p-5 rounded-2xl border-2 border-amber-400 shadow-md space-y-4 animate-fadeIn">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-amber-100">
+            <div className="flex items-center space-x-2">
+              <span className="p-2 bg-amber-100 text-amber-900 rounded-xl border border-amber-300">
+                <Lock className="w-5 h-5 text-amber-800" />
+              </span>
+              <div>
+                <h3 className="text-sm font-black text-amber-950 uppercase tracking-wide">
+                  Luggage Tag Locked • Identity Verification Required
+                </h3>
+                <p className="text-[11px] text-amber-800">
+                  Tag identified. Customer details are masked to protect passenger privacy.
+                </p>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black rounded-lg uppercase">
+              STATUS: LOCKED
+            </span>
+          </div>
+
+          {/* Masked Preview of Customer (Only ID and Masked Name shown) */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Passenger ID</span>
+              <span className="font-mono font-black text-blue-900 text-sm">
+                {scannedData.display_id || scannedData.passenger_id}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Customer Name</span>
+              <span className="font-bold text-slate-700">
+                {scannedData.owner_name}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Registered Bags</span>
+              <span className="font-bold text-slate-900">
+                {scannedData.total_count} Bag{scannedData.total_count > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Trip Batch</span>
+              <span className="font-semibold text-slate-600">
+                {scannedData.batch_name || 'Trip 1'}
+              </span>
+            </div>
+          </div>
+
+          {/* PIN Input & Pull Form */}
+          <form onSubmit={handlePullDetailsWithPin} className="space-y-3 pt-1">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-800 flex items-center space-x-1">
+                  <KeyRound className="w-3.5 h-3.5 text-blue-800" />
+                  <span>Enter Passenger PIN (Last 4 Digits of Mobile Number):</span>
+                </label>
+                {scannedData.pin_hint && (
+                  <button
+                    type="button"
+                    onClick={() => setEnteredPin(scannedData.pin_hint)}
+                    className="text-[10px] text-blue-800 hover:text-blue-900 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 cursor-pointer"
+                  >
+                    Demo PIN Hint: {scannedData.pin_hint} (Auto-Fill)
+                  </button>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  maxLength={10}
+                  placeholder="Enter 4-digit PIN (e.g. 3210 or 1234)"
+                  value={enteredPin}
+                  onChange={(e) => setEnteredPin(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 text-sm font-mono font-bold tracking-widest border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-900 bg-white"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={loadingDetails}
+                  className="px-5 py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Unlock className="w-3.5 h-3.5" />
+                  <span>{loadingDetails ? 'Unlocking...' : 'Pull Details'}</span>
+                </button>
+              </div>
+            </div>
+
+            {pinError && (
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center space-x-1.5 animate-fadeIn">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                <span className="font-semibold">{pinError}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handlePullAndPushHandover}
+                disabled={loadingDetails}
+                className="flex-1 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Quick Pull Details &amp; Push Handover &rarr;</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReset}
+                className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl cursor-pointer"
+              >
+                Cancel / Scan Other Bag
+              </button>
+            </div>
+          </form>
+
+        </div>
+      )}
+
+      {/* 🚀 STATE B: UNLOCKED & DETAILS PULLED (READY TO PUSH HANDOVER) */}
+      {scannedData && !scannedData.locked && (
         <div className="space-y-3 animate-fadeIn">
           
+          {/* Security Verified Banner */}
+          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-950 text-xs flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+              <span className="font-bold">Passenger Identity Verified • Full Customer Details Pulled</span>
+            </div>
+            <span className="px-2 py-0.5 rounded bg-emerald-700 text-white font-mono text-[10px] font-black">
+              VERIFIED
+            </span>
+          </div>
+
           {/* Multi-Bag Step-by-Step Prompt Banner (Asks for Bag 2, then Bag 3) */}
           {scannedData.total_count > 1 && !scannedData.all_collected ? (
             <div className="p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl text-amber-950 space-y-2 shadow-xs">
@@ -340,19 +592,20 @@ export default function ScanQrPage() {
                     STEP {scannedData.collected_count + 1} OF {scannedData.total_count}
                   </span>
                   <span className="font-black text-sm sm:text-base">
-                    👉 Please Scan Bag {scannedData.collected_count + 1} Now
+                    👉 Ready to Push Handover for Bag {scannedData.collected_count + 1}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={handleVerifyNextBag}
-                  className="px-3.5 py-1.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center space-x-1"
+                  onClick={handlePushHandoverCurrentBag}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center space-x-1"
                 >
-                  <span>Verify Bag {scannedData.collected_count + 1} &rarr;</span>
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>Push Handover (Bag {scannedData.collected_count + 1}) &rarr;</span>
                 </button>
               </div>
               <p className="text-xs text-amber-900 font-medium">
-                Bag {scannedData.collected_count} of {scannedData.total_count} verified! Please present the QR code tag for <strong>Bag {scannedData.collected_count + 1}</strong> to the camera.
+                Customer identity confirmed. Click <strong>"Push Handover"</strong> to confirm handover of Bag {scannedData.collected_count + 1} of {scannedData.total_count}.
               </p>
             </div>
           ) : scannedData.all_collected && (
@@ -367,7 +620,7 @@ export default function ScanQrPage() {
             </div>
           )}
 
-          {/* Customer Details Card */}
+          {/* Full Customer Details Card */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             
             {/* Owner Info */}
@@ -476,16 +729,16 @@ export default function ScanQrPage() {
               </div>
             </div>
 
-            {/* One-click Action to complete all bags */}
+            {/* Action Buttons to Push Handover */}
             {!scannedData.all_collected && (
               <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
                 <button
                   type="button"
-                  onClick={handleVerifyNextBag}
-                  className="flex-1 py-3 px-4 bg-blue-800 hover:bg-blue-900 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+                  onClick={handlePushHandoverCurrentBag}
+                  className="flex-1 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
                 >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>Verify Bag {scannedData.collected_count + 1} of {scannedData.total_count}</span>
+                  <UploadCloud className="w-4 h-4" />
+                  <span>Push / Confirm Handover (Bag {scannedData.collected_count + 1} of {scannedData.total_count})</span>
                 </button>
 
                 <button

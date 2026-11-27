@@ -7,6 +7,7 @@ class UserRegister(BaseModel):
     email: str
     password: str
     full_name: Optional[str] = None
+    security_pin: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: Optional[str] = None
@@ -21,6 +22,7 @@ class UserResponse(BaseModel):
     full_name: str
     role: str
     avatar_url: Optional[str] = None
+    security_pin: Optional[str] = "1234"
 
 class TokenResponse(BaseModel):
     access_token: str

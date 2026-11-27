@@ -48,12 +48,14 @@ def signup(req: UserRegister, db: Session = Depends(get_db)):
         )
     
     name_part = req.full_name.strip() if req.full_name and req.full_name.strip() else clean_email.split("@")[0].capitalize()
+    pin_val = (req.security_pin or "").strip() or "1234"
     new_user = User(
         username=clean_email,
         email=clean_email,
         password_hash=hash_password(req.password),
         full_name=name_part,
-        role="agent"
+        role="agent",
+        security_pin=pin_val
     )
     db.add(new_user)
     db.commit()
@@ -127,9 +129,16 @@ def update_profile(
     db: Session = Depends(get_db)
 ):
     new_name = (body.get("full_name") or "").strip()
-    if not new_name:
-        raise HTTPException(status_code=400, detail="Full name cannot be empty")
-    current_user.full_name = new_name
+    if new_name:
+        current_user.full_name = new_name
+    
+    if "security_pin" in body:
+        new_pin = str(body.get("security_pin") or "").strip()
+        if new_pin:
+            if len(new_pin) < 4:
+                raise HTTPException(status_code=400, detail="Security PIN must be at least 4 digits")
+            current_user.security_pin = new_pin
+
     db.commit()
     db.refresh(current_user)
     return UserResponse.model_validate(current_user)

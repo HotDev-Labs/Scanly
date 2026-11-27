@@ -8,7 +8,8 @@ import {
   AlertCircle, 
   CheckCircle2, 
   X,
-  ShieldCheck
+  ShieldCheck,
+  KeyRound
 } from 'lucide-react';
 import ScanlyLogo from './ScanlyLogo';
 
@@ -17,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [securityPin, setSecurityPin] = useState('1234');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -40,7 +42,13 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
     try {
       let res;
       if (mode === 'signup') {
-        res = await api.signup(cleanEmail, password, fullName.trim());
+        const pin = securityPin.trim() || '1234';
+        if (pin.length < 4) {
+          setError('Security PIN must be at least 4 digits.');
+          setLoading(false);
+          return;
+        }
+        res = await api.signup(cleanEmail, password, fullName.trim(), pin);
       } else {
         res = await api.login(cleanEmail, password);
       }
@@ -168,6 +176,29 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
               className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800 placeholder-slate-400 bg-white"
             />
           </div>
+
+          {mode === 'signup' && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700 flex items-center space-x-1">
+                  <KeyRound className="w-3.5 h-3.5 text-blue-800" />
+                  <span>Security PIN (4 Digits)</span>
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">Default: 1234</span>
+              </div>
+              <input
+                type="text"
+                maxLength={10}
+                placeholder="e.g. 1234 (Used to unlock luggage scans)"
+                value={securityPin}
+                onChange={(e) => setSecurityPin(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs font-mono font-bold tracking-wider border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-800 text-slate-800 placeholder-slate-400 bg-white"
+              />
+              <p className="text-[10px] text-slate-500">
+                This master PIN allows you to quickly unlock and verify baggage handovers on mobile.
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

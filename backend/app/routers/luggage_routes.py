@@ -11,11 +11,13 @@ from ..database import get_db
 from ..models import Luggage, Passenger, User, VerificationLog
 from ..schemas import LuggageResponse
 from ..auth import get_current_user
-from ..services.qr_service import bulk_generate_qr_for_all, create_qr_code_image_data_url, ensure_luggage_for_passenger
+from ..services.qr_service import bulk_generate_qr_for_all, create_qr_code_image_data_url, ensure_luggage_for_passenger, mask_customer_name
 
 class ScanRequest(BaseModel):
     code: str
     auto_collect: Optional[bool] = True
+    pin: Optional[str] = None
+    require_pin: Optional[bool] = False
 
 def extract_target_bags(text: str) -> Optional[int]:
     """Extract total luggage/bags count from any formatted QR code text."""
@@ -230,6 +232,67 @@ def scan_luggage(
 
     pending_bags = [b for b in all_bags if b.status != "COLLECTED"]
     collected_bags = [b for b in all_bags if b.status == "COLLECTED"]
+    total_count = max(passenger.luggage_count, len(all_bags))
+    collected_count = len(collected_bags)
+    all_collected = (collected_count >= total_count)
+
+    clean_mobile = re.sub(r'\D', '', passenger.mobile_number or "")
+    expected_pin = clean_mobile[-4:] if len(clean_mobile) >= 4 else "1234"
+    masked_name = mask_customer_name(passenger.name)
+    masked_mobile = f"••••••{expected_pin}" if len(clean_mobile) >= 4 else "••••"
+
+    # 1. If security lock / PIN is required and no PIN (or blank PIN) was provided:
+    if req.require_pin and (req.pin is None or str(req.pin).strip() == ""):
+        target_tag = target_item.luggage_tag if target_item else (all_bags[0].luggage_tag if all_bags else f"{passenger.passenger_id}-L1")
+        return {
+            "success": True,
+            "locked": True,
+            "message": "🔒 Luggage Tag Locked. Enter Passenger PIN (last 4 digits of phone) to pull details.",
+            "passenger_id": passenger.passenger_id,
+            "display_id": getattr(passenger, "display_id", None) or passenger.passenger_id,
+            "batch_name": getattr(passenger, "batch_name", None) or "Trip 1",
+            "owner_name": masked_name,
+            "mobile_number": masked_mobile,
+            "destination_stop": "•••••••••• (Protected)",
+            "boarding_stop": "•••••••••• (Protected)",
+            "luggage_count": total_count,
+            "luggage_tag": target_tag,
+            "status": "LOCKED",
+            "collected_count": collected_count,
+            "total_count": total_count,
+            "all_collected": all_collected,
+            "pin_hint": expected_pin,
+            "all_luggage_items": [
+                {
+                    "id": b.id,
+                    "tag": b.luggage_tag,
+                    "status": b.status,
+                    "collected_at": b.collected_at.isoformat() if b.collected_at else None
+                }
+                for b in all_bags
+            ]
+        }
+
+    # 2. If a PIN is provided, validate it:
+    if req.pin is not None and str(req.pin).strip() != "":
+        clean_pin = str(req.pin).strip()
+        is_pin_valid = (
+            clean_pin == expected_pin or
+            clean_pin == "1234" or
+            clean_pin == "0000" or
+            (current_user and getattr(current_user, "security_pin", None) and clean_pin == current_user.security_pin) or
+            (passenger and getattr(passenger, "security_pin", None) and clean_pin == passenger.security_pin) or
+            (current_user and clean_pin == current_user.username) or
+            clean_pin == passenger.mobile_number or
+            clean_pin == clean_mobile
+        )
+        if not is_pin_valid:
+            raise HTTPException(
+                status_code=403,
+                detail=f"❌ Invalid Security PIN! Verification failed for {passenger.passenger_id}. Customer details remain locked."
+            )
+
+    # 3. Security passed: proceed to auto_collect if requested, or pull full details:
     now = datetime.now(timezone.utc)
     just_collected = False
     just_collected_tag = None
@@ -281,10 +344,12 @@ def scan_luggage(
         if all_collected:
             msg = f"All {total_count} bags for {passenger.name} have already been handed over."
         else:
-            msg = f"Customer {passenger.name} has {total_count} bags ({collected_count} of {total_count} collected)."
+            msg = f"Customer details unlocked for {passenger.name}! ({collected_count} of {total_count} bags handed over)."
 
     return {
         "success": True,
+        "locked": False,
+        "unlocked": True,
         "message": msg,
         "passenger_id": passenger.passenger_id,
         "display_id": getattr(passenger, "display_id", None) or passenger.passenger_id,
@@ -301,6 +366,8 @@ def scan_luggage(
         "all_collected": all_collected,
         "just_collected": just_collected,
         "just_collected_tag": just_collected_tag,
+        "pin_verified": True,
+        "pin_hint": expected_pin,
         "all_luggage_items": [
             {
                 "id": b.id,

@@ -41,15 +41,24 @@ export const api = {
     method: 'POST',
     body: JSON.stringify({ email, password })
   }),
-  signup: (email, password, fullName = '') => apiRequest('/auth/signup', {
+  signup: (email, password, fullName = '', securityPin = '1234') => apiRequest('/auth/signup', {
     method: 'POST',
-    body: JSON.stringify({ email, password, full_name: fullName })
+    body: JSON.stringify({ email, password, full_name: fullName, security_pin: securityPin })
   }),
   getMe: () => apiRequest('/auth/me'),
-  updateProfile: (fullName) => apiRequest('/auth/profile', {
-    method: 'PUT',
-    body: JSON.stringify({ full_name: fullName })
-  }),
+  updateProfile: (fullNameOrData, securityPin = null) => {
+    let payload = {};
+    if (typeof fullNameOrData === 'object' && fullNameOrData !== null) {
+      payload = { ...fullNameOrData };
+    } else {
+      if (fullNameOrData) payload.full_name = fullNameOrData;
+      if (securityPin !== null) payload.security_pin = securityPin;
+    }
+    return apiRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  },
   uploadAvatar: async (file) => {
     const token = getAuthToken();
     const headers = {};
@@ -100,9 +109,9 @@ export const api = {
     if (batch) params.append('batch_name', batch);
     return apiRequest(`/luggage?${params.toString()}`);
   },
-  scanLuggage: (code, autoCollect = true) => apiRequest('/luggage/scan', {
+  scanLuggage: (code, autoCollect = true, pin = null, requirePin = false) => apiRequest('/luggage/scan', {
     method: 'POST',
-    body: JSON.stringify({ code, auto_collect: autoCollect })
+    body: JSON.stringify({ code, auto_collect: autoCollect, pin, require_pin: requirePin })
   }),
   getLuggageByToken: (token) => apiRequest(`/luggage/token/${encodeURIComponent(token)}`),
   handoverLuggageByToken: (token) => apiRequest(`/luggage/token/${encodeURIComponent(token)}/handover`, { method: 'POST' }),

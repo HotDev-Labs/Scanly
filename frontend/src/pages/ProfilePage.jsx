@@ -14,7 +14,12 @@ import {
   X,
   PackageCheck,
   QrCode,
-  ScanLine
+  ScanLine,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { api } from '../api';
 import AvatarUploadModal from '../components/AvatarUploadModal';
@@ -38,6 +43,14 @@ export default function ProfilePage({
   const [nameInput, setNameInput] = useState(currentUser?.full_name || '');
   const [savingName, setSavingName] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Edit Security PIN state
+  const [editingPin, setEditingPin] = useState(false);
+  const [pinInput, setPinInput] = useState(currentUser?.security_pin || '1234');
+  const [showPin, setShowPin] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
+  const [pinSaveSuccess, setPinSaveSuccess] = useState(false);
+  const [pinError, setPinError] = useState('');
 
   useEffect(() => {
     loadTrips();
@@ -97,6 +110,29 @@ export default function ProfilePage({
       console.error('Failed to update name:', err);
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handleSavePin = async () => {
+    const trimmed = pinInput.trim();
+    if (!trimmed || trimmed.length < 4) {
+      setPinError('Security PIN must be at least 4 digits');
+      return;
+    }
+    setSavingPin(true);
+    setPinError('');
+    try {
+      const updated = await api.updateProfile({ security_pin: trimmed });
+      if (setCurrentUser && updated) {
+        setCurrentUser({ ...currentUser, security_pin: updated.security_pin || trimmed });
+      }
+      setPinSaveSuccess(true);
+      setEditingPin(false);
+      setTimeout(() => setPinSaveSuccess(false), 2500);
+    } catch (err) {
+      setPinError(err.message || 'Failed to update security PIN');
+    } finally {
+      setSavingPin(false);
     }
   };
 
@@ -236,6 +272,126 @@ export default function ProfilePage({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Transit Security PIN Management Card */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3.5">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-amber-100 text-amber-900 rounded-xl border border-amber-300">
+              <KeyRound className="w-4 h-4 text-amber-800" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 tracking-tight flex items-center space-x-1.5">
+                <span>Transit Security PIN</span>
+                <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.2 rounded font-bold uppercase">
+                  ANTI-THEFT LOCK
+                </span>
+              </h2>
+              <p className="text-[11px] text-slate-500">
+                Your master 4-digit PIN to unlock luggage scans on mobile and authorize handovers
+              </p>
+            </div>
+          </div>
+
+          {!editingPin && (
+            <button
+              onClick={() => {
+                setEditingPin(true);
+                setPinInput(currentUser?.security_pin || '1234');
+                setPinError('');
+              }}
+              className="flex items-center space-x-1 text-xs font-bold text-blue-800 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 cursor-pointer transition-colors"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Change PIN</span>
+            </button>
+          )}
+        </div>
+
+        {pinSaveSuccess && (
+          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center space-x-1.5 animate-fadeIn">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>Security PIN updated successfully!</span>
+          </div>
+        )}
+
+        {pinError && (
+          <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center space-x-1.5 animate-fadeIn">
+            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+            <span className="font-semibold">{pinError}</span>
+          </div>
+        )}
+
+        {editingPin ? (
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type={showPin ? 'text' : 'password'}
+                  maxLength={10}
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  placeholder="Enter 4-digit PIN (e.g. 1234)"
+                  className="w-full pl-3.5 pr-10 py-2.5 text-sm font-mono font-bold tracking-widest border-2 border-blue-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-900 text-slate-900 bg-white"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+
+              <button
+                onClick={handleSavePin}
+                disabled={savingPin}
+                className="px-4 py-2.5 bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs rounded-xl shadow-xs flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+                <span>{savingPin ? 'Saving...' : 'Save PIN'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingPin(false);
+                  setPinInput(currentUser?.security_pin || '1234');
+                  setPinError('');
+                }}
+                className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Must be at least 4 digits. Used for operator override when scanning locked baggage QR tags.
+            </p>
+          </div>
+        ) : (
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Lock className="w-4 h-4 text-slate-500" />
+              <span className="text-xs font-semibold text-slate-600">Active Agent PIN:</span>
+              <span className="font-mono font-black text-sm text-slate-900 tracking-wider">
+                {showPin ? (currentUser?.security_pin || '1234') : '••••'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer ml-1"
+                title={showPin ? 'Hide PIN' : 'View PIN'}
+              >
+                {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <span className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 font-bold px-2 py-0.5 rounded-lg">
+              Active Protection
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Trips Section ("Trips He Have") */}

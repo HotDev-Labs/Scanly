@@ -12,24 +12,43 @@ def generate_secure_qr_token(passenger_id: str, tag: str) -> str:
     random_part = secrets.token_hex(8)
     return f"SLV-{tag}-{random_part}"
 
+def mask_customer_name(name: str) -> str:
+    """
+    Mask customer name for privacy protection.
+    e.g. 'Rahul Sharma' -> 'R***l S****a'
+    """
+    parts = (name or "").strip().split()
+    if not parts:
+        return "Protected"
+    masked = []
+    for p in parts:
+        if len(p) <= 2:
+            masked.append(p[0] + "*")
+        else:
+            masked.append(p[0] + "*" * (len(p) - 2) + p[-1])
+    return " ".join(masked)
+
 def generate_customer_qr_payload(passenger: Passenger) -> str:
     """
-    Clean, human-readable, non-clumsy payload for passenger luggage.
-    When scanned by any standard phone camera or QR scanner,
-    it shows neat, formatted passenger & luggage information.
+    Locked, privacy-protected QR code payload.
+    When scanned by any standard unauthorized phone camera or public barcode reader,
+    it does NOT reveal private phone numbers or destination details.
+    It displays the Passenger ID, masked name, and a security lock notice.
+    Only authorized agents using the Scanly app with the passenger's verification PIN
+    can unlock and pull full passenger details.
     """
     display_id = getattr(passenger, "display_id", None) or passenger.passenger_id
     batch_info = f"Trip: {passenger.batch_name}\n" if passenger.batch_name else ""
+    masked_name = mask_customer_name(passenger.name)
     return (
-        f"SCANLY - LUGGAGE VERIFICATION\n"
-        f"Passenger: {passenger.name}\n"
-        f"Mobile: {passenger.mobile_number}\n"
-        f"{batch_info}"
-        f"Destination: {passenger.destination_stop}\n"
-        f"Boarding: {passenger.boarding_stop}\n"
+        f"🔒 SCANLY PROTECTED LUGGAGE\n"
+        f"Status: ENCRYPTED & LOCKED\n"
         f"Passenger ID: {display_id}\n"
+        f"Name: {masked_name}\n"
+        f"{batch_info}"
         f"Total Bags: {passenger.luggage_count}\n"
-        f"Tag: {passenger.passenger_id}"
+        f"Tag: {passenger.passenger_id}\n"
+        f"[Authorization Required: Scan with Scanly App & Enter PIN to Unlock]"
     )
 
 def create_qr_code_image_data_url(payload: str) -> str:

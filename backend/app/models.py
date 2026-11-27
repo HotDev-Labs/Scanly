@@ -13,6 +13,7 @@ class User(Base):
     full_name = Column(String(100), nullable=False)
     role = Column(String(20), default="agent", nullable=False)  # "admin" or "agent"
     avatar_url = Column(String(500), nullable=True)
+    security_pin = Column(String(20), default="1234", nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Passenger(Base):
@@ -28,6 +29,7 @@ class Passenger(Base):
     boarding_stop = Column(String(100), nullable=False)
     destination_stop = Column(String(100), nullable=False, index=True)
     luggage_count = Column(Integer, default=1, nullable=False)
+    security_pin = Column(String(20), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

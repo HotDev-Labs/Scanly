@@ -517,11 +517,17 @@ export default function GenerateQrPage({ selectedTrip = 'Trip 1', setSelectedTri
                 <div className="text-xs text-slate-600 font-mono">
                   {popupPassenger.mobile_number} &bull; ID: {popupPassenger.display_id || popupPassenger.passenger_id} {popupPassenger.batch_name ? `• ${popupPassenger.batch_name}` : ''}
                 </div>
-                <div>
-                  <span className="inline-block mt-1 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full font-bold text-xs">
+                <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+                  <span className="inline-block px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full font-bold text-xs">
                     {popupPassenger.luggage_count} Baggage Tag(s)
                   </span>
+                  <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-300 text-amber-900 rounded-full font-bold text-xs">
+                    🔒 PIN: Last 4 digits ({String(popupPassenger.mobile_number).slice(-4)})
+                  </span>
                 </div>
+                <p className="text-[11px] text-slate-500 pt-1">
+                  Privacy Shield Active: QR code is locked and hides personal phone/destination from unauthorized external cameras.
+                </p>
               </div>
             </div>
 

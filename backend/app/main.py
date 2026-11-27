@@ -38,6 +38,8 @@ def init_db():
             "UPDATE passengers SET display_id = passenger_id WHERE display_id IS NULL",
             "ALTER TABLE users ADD COLUMN email VARCHAR(100)",
             "ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500)",
+            "ALTER TABLE users ADD COLUMN security_pin VARCHAR(20) DEFAULT '1234'",
+            "ALTER TABLE passengers ADD COLUMN security_pin VARCHAR(20)",
             "ALTER TABLE passengers ADD COLUMN agent_id INTEGER",
             "ALTER TABLE passengers ADD COLUMN agent_email VARCHAR(100)"
         ]:

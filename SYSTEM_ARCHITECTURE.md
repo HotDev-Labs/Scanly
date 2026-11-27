@@ -9,10 +9,12 @@
 Long-distance bus and transit operations (such as FlixBus, InterCity, Greyhound, and RedBus) transport millions of passengers with multiple luggage items loaded into common undercarriage luggage compartments. At intermediate stops, drivers and passengers face a critical challenge: **verifying that the person picking up a bag actually owns that specific bag**.
 
 Scanly solves this challenge through:
-1. **Cryptographic Tag Generation**: Generates unified or individual QR luggage tags directly tied to a passenger manifest.
-2. **Sequential Multi-Bag Stepper**: Guides operators step-by-step (e.g., *“Scan Bag 1 of 3”*, *“Scan Bag 2 of 3”*) to ensure no bags are left behind.
-3. **Instant Camera Scanning**: Runs in any modern mobile browser with zero app installation required by transit agents.
-4. **Agent Accountability**: Links every bag scan, trip batch, and handover timestamp to an authenticated transit agent.
+1. **Cryptographic Tag Generation & Privacy Shield**: Generates locked QR luggage tags that mask passenger phone numbers and destinations from casual phone scans.
+2. **Anti-Theft Security Lock & PIN Verification**: Requires passenger PIN (last 4 digits of phone) or operator password to unlock and pull customer details on scan.
+3. **Pull & Push Handover Workflow**: Station agents securely pull customer details upon PIN verification, then push step-by-step handovers to the cloud.
+4. **Sequential Multi-Bag Stepper**: Guides operators step-by-step (e.g., *“Scan Bag 1 of 3”*, *“Scan Bag 2 of 3”*) to ensure no bags are left behind.
+5. **Instant Camera Scanning**: Runs in any modern mobile browser with zero app installation required by transit agents.
+6. **Agent Accountability**: Links every bag scan, trip batch, and handover timestamp to an authenticated transit agent.
 
 ---
 

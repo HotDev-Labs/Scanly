@@ -199,3 +199,74 @@ def test_single_customer_multi_bag_consecutive_scanning(test_db):
     assert scan4["collected_count"] == 4
     assert scan4["all_collected"] is True
     assert scan4["just_collected_tag"].endswith("P400-L4")
+
+def test_security_lock_and_pin_verification(test_db):
+    """
+    Test Security Lock Feature:
+    1. Scans with require_pin=True and no PIN -> Returns locked response with masked data.
+    2. Scans with wrong PIN -> Rejects with 403 Forbidden.
+    3. Scans with valid PIN (last 4 digits of phone) -> Unlocks & pulls full details.
+    """
+    from fastapi import HTTPException
+    from backend.app.routers.luggage_routes import scan_luggage, ScanRequest
+
+    db, admin = test_db
+    p_in = PassengerCreate(
+        passenger_id="P500",
+        name="Karan Malhotra",
+        mobile_number="9876543210",
+        boarding_stop="Central Station",
+        destination_stop="Seaside Terminal",
+        luggage_count=2
+    )
+    p = create_passenger(p_in, db, current_user=admin)
+    generate_qr_for_passenger(p.passenger_id, db, current_user=admin)
+
+    qr_text = f"🔒 SCANLY PROTECTED LUGGAGE\nTag: {p.passenger_id}\nPassenger ID: {p.passenger_id}"
+
+    # Step 1: Scan with require_pin=True and no PIN -> Should be locked
+    res_locked = scan_luggage(ScanRequest(code=qr_text, auto_collect=False, require_pin=True), db, current_user=admin)
+    assert res_locked["locked"] is True
+    assert res_locked["status"] == "LOCKED"
+    assert "Protected" in res_locked["destination_stop"] or "••••" in res_locked["destination_stop"]
+    assert "K***" in res_locked["owner_name"]
+    assert res_locked["pin_hint"] == "3210"
+
+    # Step 2: Scan with incorrect PIN -> Should raise 403
+    with pytest.raises(HTTPException) as exc_info:
+        scan_luggage(ScanRequest(code=qr_text, auto_collect=False, pin="9999", require_pin=True), db, current_user=admin)
+    assert exc_info.value.status_code == 403
+
+    # Step 3: Scan with correct PIN (last 4 digits: 3210) -> Should unlock and pull details
+    res_unlocked = scan_luggage(ScanRequest(code=qr_text, auto_collect=False, pin="3210", require_pin=True), db, current_user=admin)
+    assert res_unlocked["locked"] is False
+    assert res_unlocked["unlocked"] is True
+    assert res_unlocked["owner_name"] == "Karan Malhotra"
+    assert res_unlocked["mobile_number"] == "9876543210"
+    assert res_unlocked["destination_stop"] == "Seaside Terminal"
+    assert res_unlocked["collected_count"] == 0
+
+    # Step 4: Push handover for Bag 1 with PIN
+    res_handover = scan_luggage(ScanRequest(code=qr_text, auto_collect=True, pin="3210", require_pin=True), db, current_user=admin)
+    assert res_handover["collected_count"] == 1
+    assert res_handover["all_collected"] is False
+
+def test_user_signup_with_pin_and_profile_update(test_db):
+    """
+    Test setting PIN at user creation and updating PIN via profile.
+    """
+    from backend.app.routers.auth_routes import update_profile
+    db, admin = test_db
+
+    # 1. Signup with custom PIN "5566"
+    signup_req = UserRegister(email="agent_pin@bus.com", password="password123", full_name="Pin Agent", security_pin="5566")
+    res = signup(signup_req, db)
+    assert res.user.security_pin == "5566"
+
+    user = db.query(User).filter(User.email == "agent_pin@bus.com").first()
+    assert user.security_pin == "5566"
+
+    # 2. Update PIN via profile to "7788"
+    updated = update_profile({"security_pin": "7788"}, current_user=user, db=db)
+    assert updated.security_pin == "7788"
+    assert user.security_pin == "7788"
